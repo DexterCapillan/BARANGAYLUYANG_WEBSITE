@@ -7,7 +7,9 @@ import {
   Users,
   ArrowRight
 } from "lucide-react";
+import announcements from "../../data/announcements";
 
+// SERVICES DATA
 const services = [
   {
     title: "Barangay Clearance",
@@ -35,25 +37,21 @@ const services = [
   }
 ];
 
+// STATISTICS
 const stats = [
   { icon: <Users className="w-8 h-8 text-blue-600" />, label: "Registered Residents", value: 1858 },
   { icon: <FileText className="w-8 h-8 text-green-600" />, label: "Clearances Issued", value: 870 },
-  { icon: <Megaphone className="w-8 h-8 text-yellow-500" />, label: "Announcements", value: 32 }
+  { icon: <Megaphone className="w-8 h-8 text-yellow-500" />, label: "Announcements", value: announcements.length }
 ];
 
-const announcements = [
-  { title: "Barangay Health Drive", date: "Mar 5, 2026" },
-  { title: "Tree Planting Activity", date: "Mar 12, 2026" },
-  { title: "Barangay Assembly Meeting", date: "Mar 15, 2026" }
-];
-
+// TESTIMONIALS
 const testimonials = [
   { name: "Juan Dela Cruz", comment: "The online system is very efficient. I got my clearance in minutes!" },
   { name: "Maria Santos", comment: "Love the transparency and easy access to announcements." },
   { name: "Pedro Reyes", comment: "Managing resident records has never been easier for barangay staff." }
 ];
 
-// Motion variants
+// MOTION VARIANTS
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
