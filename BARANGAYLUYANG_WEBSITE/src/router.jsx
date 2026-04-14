@@ -8,11 +8,13 @@ import About from "./pages/public/About";
 import Services from "./pages/public/Services";
 import Officials from "./pages/public/Officials";
 import Contact from "./pages/public/Contact";
+import PublicAnnouncements from "./pages/public/Announcements";
 
-// ADMIN (NEW)
+// ADMIN
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import ResidentsPage from "./features/residents/residentsPage";
+import AdminAnnouncements from "./pages/admin/Announcements";
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +26,7 @@ export const router = createBrowserRouter([
       { path: "services", element: <Services /> },
       { path: "officials", element: <Officials /> },
       { path: "contact", element: <Contact /> },
+      { path: "announcements", element: <PublicAnnouncements /> },
     ],
   },
   {
@@ -31,7 +34,8 @@ export const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { index: true, element: <Dashboard /> },
-      { path: "residents", element: <ResidentsPage /> }, // ← THIS WAS MISSING
+      { path: "residents", element: <ResidentsPage /> },
+      { path: "announcements", element: <AdminAnnouncements /> },
     ],
   },
 ]);
