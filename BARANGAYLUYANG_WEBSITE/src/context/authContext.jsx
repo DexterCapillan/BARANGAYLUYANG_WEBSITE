@@ -1,20 +1,26 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
-// 1. Create the Context
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
-// 2. Export the AuthProvider as a NAMED export
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser ?? null);
+    });
+    return unsubscribe;
+  }, []);
+
+  async function logout() {
+    await signOut(auth);
+  }
 
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, logout }}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-// 3. Export a custom hook for easier use
-export function useAuth() {
-  return useContext(AuthContext);
 }

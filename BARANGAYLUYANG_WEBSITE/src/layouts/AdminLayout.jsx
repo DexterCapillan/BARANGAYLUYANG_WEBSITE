@@ -1,14 +1,16 @@
 // src/layouts/AdminLayout.jsx
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../components/common/Sidebar";
+import { useContext } from "react";
+import { AuthContext } from "../context/authContext";
 
 export default function AdminLayout() {
-  // For demo; replace with real logout handler and route
-  const handleLogout = () => {
-    // e.g., clear token, redirect to login
-    console.log("Logged out");
-    // If using react-router v6.4+, you can use:
-    // navigate("/login");
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/admin/login");
   };
 
   return (
@@ -23,7 +25,7 @@ export default function AdminLayout() {
           </span>
 
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">Admin</span>
+            <span className="text-sm text-slate-500">{user?.email ?? "Admin"}</span>
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm">
               A
             </div>

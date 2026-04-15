@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/common/ScrollToTop";
 import { AnnouncementsProvider } from "./context/AnnouncementsContext";
+import { AuthProvider } from "./context/authContext";
 import { ResidentsProvider } from "./context/ResidentsContext";
-import Residents from "./features/residents/residentsPage"; // add this import
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 // LAYOUTS
 import PublicLayout from "./layouts/PublicLayout";
@@ -19,38 +20,48 @@ import Services from "./pages/public/Services";
 import Dashboard from "./pages/admin/Dashboard";
 import Login from "./pages/admin/Login";
 import Announcements from "./pages/admin/Announcements";
+import Residents from "./pages/admin/Residents";
 
 export default function App() {
   return (
-    <ResidentsProvider>
+    <AuthProvider>
       <AnnouncementsProvider>
-        <BrowserRouter>
-          <ScrollToTop />
+        <ResidentsProvider>
+          <BrowserRouter>
+            <ScrollToTop />
 
-          <Routes>
+            <Routes>
 
-            {/* PUBLIC */}
-            <Route element={<PublicLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/officials" element={<Officials />} />
-              <Route path="/services" element={<Services />} />
-            </Route>
+              {/* PUBLIC */}
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/officials" element={<Officials />} />
+                <Route path="/services" element={<Services />} />
+              </Route>
 
-            {/* ADMIN LOGIN */}
-            <Route path="/admin/login" element={<Login />} />
+              {/* ADMIN LOGIN */}
+              <Route path="/admin/login" element={<Login />} />
 
-            {/* ADMIN PANEL */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="announcements" element={<Announcements />} />
-              <Route path="residents" element={<Residents />} />  {/* add this */}
-            </Route>
+              {/* ADMIN PANEL — protected */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="announcements" element={<Announcements />} />
+                 <Route path="residents" element={<Residents />} /> {/* add this */}
+              </Route>
 
-          </Routes>
-        </BrowserRouter>
+            </Routes>
+          </BrowserRouter>
+        </ResidentsProvider>
       </AnnouncementsProvider>
-    </ResidentsProvider>
+    </AuthProvider>
   );
 }
