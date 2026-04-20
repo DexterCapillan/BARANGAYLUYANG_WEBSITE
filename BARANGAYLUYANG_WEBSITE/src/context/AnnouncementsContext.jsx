@@ -1,3 +1,4 @@
+// src/context/AnnouncementsContext.jsx
 import { createContext, useState, useEffect } from "react";
 import { db } from "../firebase";
 import {
@@ -6,6 +7,9 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  serverTimestamp,
+  query,
+  orderBy,
 } from "firebase/firestore";
 
 export const AnnouncementsContext = createContext(null);
@@ -13,12 +17,14 @@ export const AnnouncementsContext = createContext(null);
 export function AnnouncementsProvider({ children }) {
   const [announcements, setAnnouncements] = useState([]);
 
-  // Real-time listener for announcements collection
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "announcements"), (snapshot) => {
-      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setAnnouncements(data);
-    });
+    const unsub = onSnapshot(
+      query(collection(db, "announcements"), orderBy("createdAt", "desc")),
+      (snapshot) => {
+        const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setAnnouncements(data);
+      }
+    );
     return () => unsub();
   }, []);
 
@@ -26,7 +32,7 @@ export function AnnouncementsProvider({ children }) {
     await addDoc(collection(db, "announcements"), {
       ...ann,
       image: "https://via.placeholder.com/600x300",
-      createdAt: new Date().toISOString(),
+      createdAt: serverTimestamp(),
     });
   }
 

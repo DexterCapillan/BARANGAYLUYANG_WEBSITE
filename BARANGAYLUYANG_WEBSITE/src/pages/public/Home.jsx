@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useResidents } from "../../context/useResidents";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../../firebase";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText,
@@ -17,6 +18,8 @@ import {
 } from "lucide-react";
 import { useAnnouncements } from "../../context/useAnnouncements";
 
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1598714805247-5dd7fe699792?w=1600&q=80";
+
 const services = [
   {
     title: "Barangay Clearance",
@@ -30,7 +33,7 @@ const services = [
     title: "Health Services",
     desc: "Check programs, schedules, and announcements at the Health Center.",
     icon: <HeartPulse className="w-10 h-10 text-green-600" />,
-    link: "/services",
+    link: "/health",
     color: "from-green-50 to-green-100",
     border: "border-green-200"
   },
@@ -38,7 +41,7 @@ const services = [
     title: "Announcements",
     desc: "Stay updated with news, events, and community notices.",
     icon: <Megaphone className="w-10 h-10 text-yellow-500" />,
-    link: "/services",
+    link: "/services/announcements",
     color: "from-yellow-50 to-yellow-100",
     border: "border-yellow-200"
   },
@@ -46,7 +49,7 @@ const services = [
     title: "Resident Records",
     desc: "Manage resident information securely and efficiently.",
     icon: <Users className="w-10 h-10 text-purple-600" />,
-    link: "/services",
+    link: "/services/residents",
     color: "from-purple-50 to-purple-100",
     border: "border-purple-200"
   }
@@ -75,11 +78,30 @@ const fadeUp = {
 
 export default function Home() {
   const { announcements } = useAnnouncements();
-  const { stats: residentStats } = useResidents();
+  const [residentCount, setResidentCount] = useState(1858);
+  const [heroImage, setHeroImage] = useState(FALLBACK_IMAGE);
   const [selected, setSelected] = useState(null);
 
+  // Resident count listener
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "public", "residentCount"), (snap) => {
+      if (snap.exists()) setResidentCount(snap.data().total);
+    });
+    return () => unsub();
+  }, []);
+
+  // Hero image listener
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "settings", "heroImage"), (snap) => {
+      if (snap.exists() && snap.data().url) {
+        setHeroImage(snap.data().url);
+      }
+    });
+    return () => unsub();
+  }, []);
+
   const stats = [
-    { icon: <Users className="w-8 h-8 text-white" />, label: "Registered Residents", value: residentStats.total, bg: "from-blue-500 to-blue-700" },
+    { icon: <Users className="w-8 h-8 text-white" />, label: "Registered Residents", value: residentCount, bg: "from-blue-500 to-blue-700" },
     { icon: <FileText className="w-8 h-8 text-white" />, label: "Clearances Issued", value: 870, bg: "from-green-500 to-green-700" },
     { icon: <Megaphone className="w-8 h-8 text-white" />, label: "Announcements", value: announcements.length, bg: "from-yellow-400 to-yellow-600" }
   ];
@@ -141,17 +163,11 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <section className="relative min-h-[92vh] flex items-center justify-center text-white overflow-hidden">
-        {/* BACKGROUND IMAGE */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1598714805247-5dd7fe699792?w=1600&q=80')`,
-          }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
+          style={{ backgroundImage: `url('${heroImage}')` }}
         />
-        {/* DARK OVERLAY */}
         <div className="absolute inset-0 bg-gradient-to-b from-blue-950/80 via-blue-900/75 to-blue-950/90" />
-
-        {/* ANIMATED BLOBS */}
         <motion.div
           animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
           transition={{ repeat: Infinity, duration: 8 }}
@@ -162,60 +178,36 @@ export default function Home() {
           transition={{ repeat: Infinity, duration: 10 }}
           className="absolute -top-24 -left-24 w-96 h-96 bg-blue-400 rounded-full blur-3xl"
         />
-
-        {/* HERO CONTENT */}
         <motion.div
           className="relative z-10 max-w-4xl mx-auto text-center px-6 space-y-6"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
-          {/* BADGE */}
           <motion.div variants={fadeUp} className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm text-blue-100">
             <MapPin className="w-3.5 h-3.5 text-yellow-400" />
             Cagayan Valley, Philippines
           </motion.div>
-
-          <motion.h1
-            variants={fadeUp}
-            className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight"
-          >
+          <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight">
             Welcome to{" "}
             <span className="text-yellow-400 drop-shadow-lg">Barangay Luyang</span>
           </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto leading-relaxed"
-          >
+          <motion.p variants={fadeUp} className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto leading-relaxed">
             Digital access to barangay services, transparent governance, and community engagement for every resident.
           </motion.p>
-
-          <motion.div
-            variants={fadeUp}
-            className="flex flex-col sm:flex-row justify-center gap-4 pt-2"
-          >
-            <Link
-              to="/services"
-              className="bg-yellow-400 text-blue-950 font-bold px-8 py-3.5 rounded-xl hover:bg-yellow-300 hover:scale-105 transition duration-300 shadow-lg shadow-yellow-400/20"
-            >
+          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row justify-center gap-4 pt-2">
+            <Link to="/services" className="bg-yellow-400 text-blue-950 font-bold px-8 py-3.5 rounded-xl hover:bg-yellow-300 hover:scale-105 transition duration-300 shadow-lg shadow-yellow-400/20">
               Online Services
             </Link>
-            <Link
-              to="/about"
-              className="border-2 border-white/50 backdrop-blur-sm px-8 py-3.5 rounded-xl hover:bg-white hover:text-blue-900 hover:scale-105 transition duration-300"
-            >
+            <Link to="/about" className="border-2 border-white/50 backdrop-blur-sm px-8 py-3.5 rounded-xl hover:bg-white hover:text-blue-900 hover:scale-105 transition duration-300">
               Learn More
             </Link>
           </motion.div>
 
           {/* QUICK STATS ROW */}
-          <motion.div
-            variants={fadeUp}
-            className="grid grid-cols-3 gap-4 pt-8 max-w-xl mx-auto"
-          >
+          <motion.div variants={fadeUp} className="grid grid-cols-3 gap-4 pt-8 max-w-xl mx-auto">
             {[
-              { value: residentStats.total, label: "Residents" },
+              { value: residentCount, label: "Residents" },
               { value: 870, label: "Clearances" },
               { value: announcements.length, label: "Announcements" }
             ].map((s, i) => (
@@ -227,7 +219,6 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        {/* SCROLL INDICATOR */}
         <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2"
           animate={{ y: [0, 8, 0] }}
@@ -241,25 +232,12 @@ export default function Home() {
 
       {/* SERVICES SECTION */}
       <section className="max-w-7xl mx-auto py-24 px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="text-center mb-14"
-        >
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
           <span className="text-sm font-semibold text-blue-600 uppercase tracking-widest">What We Offer</span>
           <h2 className="text-3xl md:text-4xl font-bold text-blue-900 mt-2">Our Services</h2>
           <p className="text-slate-500 mt-3 max-w-xl mx-auto">Everything you need from your barangay, now available online.</p>
         </motion.div>
-
-        <motion.div
-          className="grid sm:grid-cols-2 md:grid-cols-4 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
+        <motion.div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6" variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
           {services.map((service, index) => (
             <motion.div
               key={index}
@@ -269,10 +247,7 @@ export default function Home() {
               <div className="mb-4 p-3 bg-white rounded-xl w-fit shadow-sm">{service.icon}</div>
               <h3 className="font-bold text-lg text-slate-800 mb-2">{service.title}</h3>
               <p className="text-slate-600 text-sm mb-4 leading-relaxed">{service.desc}</p>
-              <Link
-                to={service.link}
-                className="inline-flex items-center text-blue-700 font-semibold text-sm hover:gap-2 gap-1 transition-all"
-              >
+              <Link to={service.link} className="inline-flex items-center text-blue-700 font-semibold text-sm hover:gap-2 gap-1 transition-all">
                 Learn More <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
@@ -282,33 +257,18 @@ export default function Home() {
 
       {/* STATISTICS SECTION */}
       <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-20 px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="text-center mb-12"
-        >
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
           <span className="text-sm font-semibold text-yellow-400 uppercase tracking-widest">By The Numbers</span>
           <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">Barangay at a Glance</h2>
         </motion.div>
-
-        <motion.div
-          className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
+        <motion.div className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto" variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
           {stats.map((stat, idx) => (
             <motion.div
               key={idx}
               className="relative bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-8 flex flex-col items-center text-center hover:bg-white/20 transition-colors"
               variants={cardVariants}
             >
-              <div className={`p-4 rounded-2xl bg-gradient-to-br ${stat.bg} shadow-lg mb-4`}>
-                {stat.icon}
-              </div>
+              <div className={`p-4 rounded-2xl bg-gradient-to-br ${stat.bg} shadow-lg mb-4`}>{stat.icon}</div>
               <h3 className="text-4xl font-extrabold text-white">{stat.value?.toLocaleString()}</h3>
               <p className="text-blue-200 mt-1 text-sm">{stat.label}</p>
             </motion.div>
@@ -318,27 +278,14 @@ export default function Home() {
 
       {/* ANNOUNCEMENTS */}
       <section className="max-w-7xl mx-auto py-24 px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="text-center mb-14"
-        >
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
           <span className="text-sm font-semibold text-blue-600 uppercase tracking-widest">Stay Informed</span>
           <h2 className="text-3xl md:text-4xl font-bold text-blue-900 mt-2">Latest Announcements</h2>
         </motion.div>
-
         {announcements.length === 0 ? (
           <p className="text-center text-slate-500">No announcements yet.</p>
         ) : (
-          <motion.div
-            className="grid sm:grid-cols-1 md:grid-cols-3 gap-6"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
+          <motion.div className="grid sm:grid-cols-1 md:grid-cols-3 gap-6" variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
             {[...announcements].reverse().slice(0, 3).map((ann, idx) => (
               <motion.div
                 key={idx}
@@ -352,9 +299,7 @@ export default function Home() {
                     <Calendar className="w-3.5 h-3.5" />
                     <span>{ann.date}</span>
                   </div>
-                  <h3 className="font-bold text-slate-800 text-base mb-2 leading-snug group-hover:text-blue-800 transition-colors">
-                    {ann.title}
-                  </h3>
+                  <h3 className="font-bold text-slate-800 text-base mb-2 leading-snug group-hover:text-blue-800 transition-colors">{ann.title}</h3>
                   <p className="text-slate-500 text-sm leading-relaxed line-clamp-2 mb-4">{ann.preview}</p>
                   <div className="flex items-center gap-1 text-blue-700 text-sm font-semibold group-hover:gap-2 transition-all">
                     <span>Read more</span>
@@ -369,30 +314,13 @@ export default function Home() {
 
       {/* TESTIMONIALS */}
       <section className="bg-slate-50 py-24 px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="text-center mb-14"
-        >
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
           <span className="text-sm font-semibold text-blue-600 uppercase tracking-widest">Community Voices</span>
           <h2 className="text-3xl md:text-4xl font-bold text-blue-900 mt-2">What Residents Say</h2>
         </motion.div>
-
-        <motion.div
-          className="grid sm:grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
+        <motion.div className="grid sm:grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto" variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
           {testimonials.map((t, idx) => (
-            <motion.div
-              key={idx}
-              className="p-7 bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow relative"
-              variants={cardVariants}
-            >
+            <motion.div key={idx} className="p-7 bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow relative" variants={cardVariants}>
               <div className="text-5xl text-blue-100 font-serif absolute top-4 left-5">"</div>
               <p className="text-slate-600 italic leading-relaxed pt-4 relative z-10">{t.comment}</p>
               <div className="mt-5 flex items-center gap-3">
@@ -411,30 +339,17 @@ export default function Home() {
 
       {/* ABOUT BANNER */}
       <motion.section
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={fadeUp}
+        initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
         className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 py-20 px-6 text-center"
       >
-        <motion.div
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ repeat: Infinity, duration: 8 }}
-          className="absolute -right-20 -top-20 w-72 h-72 bg-yellow-400 opacity-10 rounded-full blur-2xl"
-        />
+        <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 8 }} className="absolute -right-20 -top-20 w-72 h-72 bg-yellow-400 opacity-10 rounded-full blur-2xl" />
         <div className="relative z-10 max-w-2xl mx-auto">
           <span className="text-sm font-semibold text-yellow-400 uppercase tracking-widest">Our Mission</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mt-3 mb-4">
-            Committed to Transparency & Community
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mt-3 mb-4">Committed to Transparency & Community</h2>
           <p className="text-blue-200 text-lg leading-relaxed">
-            Barangay Luyang ensures all residents have easy access to digital services,
-            timely announcements, and transparent governance.
+            Barangay Luyang ensures all residents have easy access to digital services, timely announcements, and transparent governance.
           </p>
-          <Link
-            to="/about"
-            className="mt-8 inline-block bg-yellow-400 text-blue-950 font-bold px-8 py-3.5 rounded-xl hover:bg-yellow-300 hover:scale-105 transition duration-300 shadow-lg"
-          >
+          <Link to="/about" className="mt-8 inline-block bg-yellow-400 text-blue-950 font-bold px-8 py-3.5 rounded-xl hover:bg-yellow-300 hover:scale-105 transition duration-300 shadow-lg">
             Learn More About Us
           </Link>
         </div>

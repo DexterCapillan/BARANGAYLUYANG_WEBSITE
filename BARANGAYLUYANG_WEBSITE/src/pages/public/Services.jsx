@@ -1,5 +1,6 @@
+// src/pages/public/Services.jsx
 import { motion } from "framer-motion";
-import { FileText, HeartPulse, Megaphone, Users, ArrowRight } from "lucide-react";
+import { FileText, HeartPulse, Megaphone, Users, ArrowRight, ScrollText, Landmark, Receipt } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const fadeUp = {
@@ -18,49 +19,89 @@ const cardVariants = {
 };
 
 const services = [
+  // CHANGED: Barangay Clearance → Executive Orders
   {
-    title: "Barangay Clearance",
-    desc: "Request barangay clearance and certificates online. Fast and secure process for residents. Track the status of your requests here.",
-    icon: <FileText className="w-8 h-8" />,
-    linkText: "Apply Now",
-    linkTo: "/services",
+    title: "Executive Orders",
+    desc: "View and access official executive orders issued by the Barangay Captain. Stay informed about directives and policies affecting the community.",
+    icon: <ScrollText className="w-8 h-8" />,
+    linkText: "View Orders",
+    linkTo: "/services/executive-orders",
     color: "from-blue-500 to-blue-700",
     bg: "from-blue-50 to-blue-100",
     border: "border-blue-200",
     text: "text-blue-700",
   },
+  // KEEP: Health Services
   {
     title: "Health Services",
     desc: "Check schedules, announcements, and programs at the Barangay Health Center. Stay updated with medical outreach and vaccinations.",
     icon: <HeartPulse className="w-8 h-8" />,
     linkText: "View Details",
-    linkTo: "/services",
+    linkTo: "/health",
     color: "from-green-500 to-emerald-700",
     bg: "from-green-50 to-emerald-100",
     border: "border-green-200",
     text: "text-green-700",
   },
+  // KEEP: Announcements
   {
     title: "Announcements",
     desc: "Stay updated with barangay news, events, and community notices. We ensure residents are informed about all local activities.",
     icon: <Megaphone className="w-8 h-8" />,
     linkText: "See Updates",
-    linkTo: "/services",
+    linkTo: "/services/announcements",
     color: "from-yellow-400 to-amber-600",
     bg: "from-yellow-50 to-amber-100",
     border: "border-yellow-200",
     text: "text-yellow-700",
   },
+  // KEEP: Resident Records
   {
     title: "Resident Records",
     desc: "Manage and view resident information efficiently through the digital system. Only authorized personnel can access sensitive data.",
     icon: <Users className="w-8 h-8" />,
     linkText: "View Records",
-    linkTo: "/services",
+    linkTo: "/services/residents",
     color: "from-purple-500 to-purple-700",
     bg: "from-purple-50 to-purple-100",
     border: "border-purple-200",
     text: "text-purple-700",
+  },
+  // NEW: Ordinances
+  {
+    title: "Ordinances",
+    desc: "Browse barangay ordinances passed by the Sangguniang Barangay. Understand the local laws and regulations governing our community.",
+    icon: <Landmark className="w-8 h-8" />,
+    linkText: "Browse Ordinances",
+    linkTo: "/services/ordinances",
+    color: "from-indigo-500 to-indigo-700",
+    bg: "from-indigo-50 to-indigo-100",
+    border: "border-indigo-200",
+    text: "text-indigo-700",
+  },
+  // NEW: Taxes & Fees
+  {
+    title: "Taxes & Fees",
+    desc: "Learn about barangay taxes, fees, and charges. Find out payment schedules, rates, and how to settle your obligations conveniently.",
+    icon: <Receipt className="w-8 h-8" />,
+    linkText: "View Rates",
+    linkTo: "/services/taxes-and-fees",
+    color: "from-rose-500 to-rose-700",
+    bg: "from-rose-50 to-rose-100",
+    border: "border-rose-200",
+    text: "text-rose-700",
+  },
+  // NEW: Resolutions
+  {
+    title: "Resolutions",
+    desc: "Access official resolutions adopted by the Sangguniang Barangay. Review decisions and positions taken on community matters.",
+    icon: <FileText className="w-8 h-8" />,
+    linkText: "View Resolutions",
+    linkTo: "/services/resolutions",
+    color: "from-teal-500 to-teal-700",
+    bg: "from-teal-50 to-teal-100",
+    border: "border-teal-200",
+    text: "text-teal-700",
   },
 ];
 
@@ -82,7 +123,7 @@ export default function Services() {
       {/* SERVICES GRID */}
       <section className="max-w-7xl mx-auto px-6 py-24">
         <motion.div
-          className="grid sm:grid-cols-2 md:grid-cols-4 gap-6"
+          className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
         >
           {services.map((service, index) => (

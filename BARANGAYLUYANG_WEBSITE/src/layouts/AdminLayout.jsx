@@ -2,16 +2,17 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../components/common/Sidebar";
 import { useContext } from "react";
-import { AuthContext } from "../context/authContext";
+import { AuthContext } from "../context/AuthContext";
 
 export default function AdminLayout() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/admin/login");
-  };
+ const handleLogout = async () => {
+  await logout();
+  navigate("/");
+};
+
 
   return (
     <div className="flex min-h-screen bg-slate-50">

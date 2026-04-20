@@ -1,13 +1,17 @@
 // src/components/common/Sidebar.jsx
 import { Link, useLocation } from "react-router-dom";
+import { LayoutDashboard, Users, FileText, Megaphone, HeartPulse, Settings } from "lucide-react";
 
 export default function Sidebar() {
   const location = useLocation();
 
   const links = [
-    { name: "Dashboard", path: "/admin" },
-    { name: "Residents", path: "/admin/residents" },
-    { name: "Certificates", path: "/admin/certificates" },
+    { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
+    { name: "Residents", path: "/admin/residents", icon: Users },
+    { name: "Certificates", path: "/admin/certificates", icon: FileText },
+    { name: "Announcements", path: "/admin/announcements", icon: Megaphone },
+    { name: "Health Services", path: "/admin/health", icon: HeartPulse },
+    { name: "Settings", path: "/admin/settings", icon: Settings },
   ];
 
   return (
@@ -15,18 +19,19 @@ export default function Sidebar() {
       <h2 className="text-xl font-bold mb-8">Luyang Admin</h2>
 
       <nav className="space-y-2">
-        {links.map(({ name, path }) => {
+        {links.map(({ name, path, icon: Icon }) => {
           const isActive = location.pathname === path;
           return (
             <Link
               key={path}
               to={path}
-              className={`block px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
                 isActive
                   ? "bg-white text-blue-900 shadow-sm"
                   : "hover:bg-blue-800"
               }`}
             >
+              <Icon className="w-4 h-4 flex-shrink-0" />
               {name}
             </Link>
           );

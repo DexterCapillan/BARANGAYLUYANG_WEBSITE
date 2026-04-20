@@ -1,4 +1,3 @@
-// src/features/residents/ResidentsPage.jsx
 import { useState, useRef } from "react";
 import { useResidents } from "../../context/useResidents";
 import * as XLSX from "xlsx";
@@ -17,7 +16,7 @@ const EMPTY_FORM = {
 const PAGE_SIZE = 20;
 
 export default function ResidentsPage() {
-  const { residents, stats, addResident, deleteResident, updateStats } = useResidents();
+  const { residents, stats, addResident, addResidentsBulk, deleteResident, updateStats } = useResidents();
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -29,7 +28,6 @@ export default function ResidentsPage() {
   const [editingStats, setEditingStats] = useState(false);
   const fileRef = useRef();
 
-  // --- SEARCH & PAGINATION ---
   const filtered = residents.filter((r) => {
     const full = `${r.firstName} ${r.lastName}`.toLowerCase();
     return full.includes(search.toLowerCase());
@@ -37,7 +35,6 @@ export default function ResidentsPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // --- MANUAL FORM ---
   function handleFormChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
@@ -49,17 +46,14 @@ export default function ResidentsPage() {
     setShowForm(false);
   }
 
-  // --- EXCEL IMPORT ---
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (evt) => {
       const wb = XLSX.read(evt.target.result, { type: "binary" });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, { defval: "", range: 1 });
-
       const mapped = rows.map((row) => ({
         idNo: row["Id No"] ?? row["ID No"] ?? "",
         lastName: row["Last Name"] ?? "",
@@ -79,7 +73,6 @@ export default function ResidentsPage() {
         citizenship: row["Citizenship"] ?? "",
         occupation: row["Occupation"] ?? "",
       }));
-
       setImportPreview(mapped);
       setShowImportModal(true);
     };
@@ -87,17 +80,15 @@ export default function ResidentsPage() {
     e.target.value = "";
   }
 
+  // Uses bulk import — fast, one public count update at the end
   async function handleConfirmImport() {
     setImporting(true);
-    for (const resident of importPreview) {
-      await addResident(resident);
-    }
+    await addResidentsBulk(importPreview);
     setImporting(false);
     setShowImportModal(false);
     setImportPreview([]);
   }
 
-  // --- EXCEL EXPORT ---
   function handleExport(data, filename) {
     const exportData = data.map((r) => ({
       "Id No": r.idNo,
@@ -118,7 +109,6 @@ export default function ResidentsPage() {
       "Citizenship": r.citizenship,
       "Occupation": r.occupation,
     }));
-
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Residents");
@@ -139,41 +129,27 @@ export default function ResidentsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <input
-            ref={fileRef} type="file" accept=".xlsx,.xls"
-            className="hidden" onChange={handleFileChange}
-          />
-
-          {/* EXPORT ALL */}
+          <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileChange} />
           <button
             onClick={() => handleExport(residents, "all_residents.xlsx")}
             className="flex items-center gap-2 text-sm border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            Export All
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export All
           </button>
-
-          {/* EXPORT FILTERED - only shows when searching */}
           {search && (
             <button
               onClick={() => handleExport(filtered, "residents_filtered.xlsx")}
               className="flex items-center gap-2 text-sm border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
             >
-              <FileSpreadsheet className="w-4 h-4 text-blue-500" />
-              Export Results ({filtered.length})
+              <FileSpreadsheet className="w-4 h-4 text-blue-500" /> Export Results ({filtered.length})
             </button>
           )}
-
-          {/* IMPORT */}
           <button
             onClick={() => fileRef.current.click()}
             className="flex items-center gap-2 text-sm border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
           >
-            <FileSpreadsheet className="w-4 h-4 text-green-600" />
-            Import Excel
+            <FileSpreadsheet className="w-4 h-4 text-green-600" /> Import Excel
           </button>
-
-          {/* MANUAL ADD */}
           <button
             onClick={() => setShowForm((v) => !v)}
             className="flex items-center gap-2 text-sm bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
@@ -186,76 +162,49 @@ export default function ResidentsPage() {
 
       {/* STAT CARDS */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-
         <div className="bg-blue-600 rounded-xl p-4 text-white shadow">
           <p className="text-2xl font-extrabold">{stats.total?.toLocaleString() ?? 0}</p>
           <p className="text-xs opacity-80 mt-0.5">Total</p>
         </div>
-
         <div className="bg-cyan-500 rounded-xl p-4 text-white shadow">
           <p className="text-2xl font-extrabold">{stats.males?.toLocaleString() ?? 0}</p>
           <p className="text-xs opacity-80 mt-0.5">Males</p>
           {editingStats && (
             <div className="flex items-center gap-2 mt-2">
-              <button
-                onClick={() => updateStats({ males: Math.max(0, stats.males - 1) })}
-                className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold"
-              >−</button>
-              <button
-                onClick={() => updateStats({ males: stats.males + 1 })}
-                className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold"
-              >+</button>
+              <button onClick={() => updateStats({ males: Math.max(0, stats.males - 1) })} className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold">−</button>
+              <button onClick={() => updateStats({ males: stats.males + 1 })} className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold">+</button>
             </div>
           )}
         </div>
-
         <div className="bg-pink-500 rounded-xl p-4 text-white shadow">
           <p className="text-2xl font-extrabold">{stats.females?.toLocaleString() ?? 0}</p>
           <p className="text-xs opacity-80 mt-0.5">Females</p>
           {editingStats && (
             <div className="flex items-center gap-2 mt-2">
-              <button
-                onClick={() => updateStats({ females: Math.max(0, stats.females - 1) })}
-                className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold"
-              >−</button>
-              <button
-                onClick={() => updateStats({ females: stats.females + 1 })}
-                className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold"
-              >+</button>
+              <button onClick={() => updateStats({ females: Math.max(0, stats.females - 1) })} className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold">−</button>
+              <button onClick={() => updateStats({ females: stats.females + 1 })} className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold">+</button>
             </div>
           )}
         </div>
-
         <div className="bg-emerald-500 rounded-xl p-4 text-white shadow">
           <p className="text-2xl font-extrabold">{stats.adults?.toLocaleString() ?? 0}</p>
           <p className="text-xs opacity-80 mt-0.5">Adults</p>
         </div>
-
         <div className="bg-amber-500 rounded-xl p-4 text-white shadow">
           <p className="text-2xl font-extrabold">{stats.children?.toLocaleString() ?? 0}</p>
           <p className="text-xs opacity-80 mt-0.5">Children</p>
           {editingStats && (
             <div className="flex items-center gap-2 mt-2">
-              <button
-                onClick={() => updateStats({ children: Math.max(0, stats.children - 1) })}
-                className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold"
-              >−</button>
-              <button
-                onClick={() => updateStats({ children: stats.children + 1 })}
-                className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold"
-              >+</button>
+              <button onClick={() => updateStats({ children: Math.max(0, stats.children - 1) })} className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold">−</button>
+              <button onClick={() => updateStats({ children: stats.children + 1 })} className="bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-sm font-bold">+</button>
             </div>
           )}
         </div>
-
       </div>
 
       {/* EDIT STATS TOGGLE */}
       <div className="flex justify-end -mt-3">
-        <button
-          onClick={() => setEditingStats((v) => !v)}
-          className="text-xs text-slate-400 hover:text-slate-600 underline"
-        >
+        <button onClick={() => setEditingStats((v) => !v)} className="text-xs text-slate-400 hover:text-slate-600 underline">
           {editingStats ? "Done editing stats" : "Edit stats manually"}
         </button>
       </div>
@@ -286,18 +235,14 @@ export default function ResidentsPage() {
                 <div key={name}>
                   <label className="text-xs text-slate-500 mb-1 block">{label}</label>
                   <input
-                    name={name} value={form[name]}
-                    onChange={handleFormChange}
+                    name={name} value={form[name]} onChange={handleFormChange}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               ))}
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Sex</label>
-                <select
-                  name="sex" value={form.sex} onChange={handleFormChange}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+                <select name="sex" value={form.sex} onChange={handleFormChange} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Select</option>
                   <option>Male</option>
                   <option>Female</option>
@@ -305,10 +250,7 @@ export default function ResidentsPage() {
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1 block">Civil Status</label>
-                <select
-                  name="civilStatus" value={form.civilStatus} onChange={handleFormChange}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+                <select name="civilStatus" value={form.civilStatus} onChange={handleFormChange} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Select</option>
                   <option>Single</option>
                   <option>Married</option>
@@ -318,10 +260,7 @@ export default function ResidentsPage() {
               </div>
             </div>
             <div className="flex justify-end mt-4">
-              <button
-                type="submit"
-                className="bg-blue-900 text-white px-6 py-2 rounded-lg text-sm hover:bg-blue-800 transition-colors"
-              >
+              <button type="submit" className="bg-blue-900 text-white px-6 py-2 rounded-lg text-sm hover:bg-blue-800 transition-colors">
                 Save Resident
               </button>
             </div>
@@ -345,15 +284,12 @@ export default function ResidentsPage() {
             </button>
           )}
         </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 {["ID No", "Full Name", "Age", "Sex", "Civil Status", "Purok/Zone", "Occupation", ""].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    {h}
-                  </th>
+                  <th key={h} className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -377,10 +313,7 @@ export default function ResidentsPage() {
                   <td className="px-4 py-3 text-sm text-slate-600">{r.purok || "—"}</td>
                   <td className="px-4 py-3 text-sm text-slate-600">{r.occupation || "—"}</td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => deleteResident(r.id)}
-                      className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
-                    >
+                    <button onClick={() => deleteResident(r.id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
@@ -389,27 +322,16 @@ export default function ResidentsPage() {
             </tbody>
           </table>
         </div>
-
         <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
           <p className="text-xs text-slate-500">
             Showing {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length.toLocaleString()} residents
           </p>
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors"
-            >
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs text-slate-600 px-2">
-              Page {page} of {totalPages}
-            </span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors"
-            >
+            <span className="text-xs text-slate-600 px-2">Page {page} of {totalPages}</span>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -462,10 +384,7 @@ export default function ResidentsPage() {
               )}
             </div>
             <div className="p-4 border-t border-slate-100 flex justify-end gap-3">
-              <button
-                onClick={() => setShowImportModal(false)}
-                className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-              >
+              <button onClick={() => setShowImportModal(false)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
                 Cancel
               </button>
               <button
@@ -482,9 +401,7 @@ export default function ResidentsPage() {
                     Importing...
                   </>
                 ) : (
-                  <>
-                    <Upload className="w-4 h-4" /> Confirm Import
-                  </>
+                  <><Upload className="w-4 h-4" /> Confirm Import</>
                 )}
               </button>
             </div>
