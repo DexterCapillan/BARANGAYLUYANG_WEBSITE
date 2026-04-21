@@ -1,6 +1,6 @@
 // src/pages/public/Services.jsx
 import { motion } from "framer-motion";
-import { FileText, HeartPulse, Megaphone, Users, ArrowRight, ScrollText, Landmark, Receipt } from "lucide-react";
+import { FileText, HeartPulse, Megaphone, Users, ArrowRight, ScrollText, Landmark, Receipt, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const fadeUp = {
@@ -19,7 +19,6 @@ const cardVariants = {
 };
 
 const services = [
-  // CHANGED: Barangay Clearance → Executive Orders
   {
     title: "Executive Orders",
     desc: "View and access official executive orders issued by the Barangay Captain. Stay informed about directives and policies affecting the community.",
@@ -31,7 +30,6 @@ const services = [
     border: "border-blue-200",
     text: "text-blue-700",
   },
-  // KEEP: Health Services
   {
     title: "Health Services",
     desc: "Check schedules, announcements, and programs at the Barangay Health Center. Stay updated with medical outreach and vaccinations.",
@@ -43,7 +41,6 @@ const services = [
     border: "border-green-200",
     text: "text-green-700",
   },
-  // KEEP: Announcements
   {
     title: "Announcements",
     desc: "Stay updated with barangay news, events, and community notices. We ensure residents are informed about all local activities.",
@@ -55,7 +52,6 @@ const services = [
     border: "border-yellow-200",
     text: "text-yellow-700",
   },
-  // KEEP: Resident Records
   {
     title: "Resident Records",
     desc: "Manage and view resident information efficiently through the digital system. Only authorized personnel can access sensitive data.",
@@ -67,7 +63,6 @@ const services = [
     border: "border-purple-200",
     text: "text-purple-700",
   },
-  // NEW: Ordinances
   {
     title: "Ordinances",
     desc: "Browse barangay ordinances passed by the Sangguniang Barangay. Understand the local laws and regulations governing our community.",
@@ -79,7 +74,6 @@ const services = [
     border: "border-indigo-200",
     text: "text-indigo-700",
   },
-  // NEW: Taxes & Fees
   {
     title: "Taxes & Fees",
     desc: "Learn about barangay taxes, fees, and charges. Find out payment schedules, rates, and how to settle your obligations conveniently.",
@@ -91,7 +85,6 @@ const services = [
     border: "border-rose-200",
     text: "text-rose-700",
   },
-  // NEW: Resolutions
   {
     title: "Resolutions",
     desc: "Access official resolutions adopted by the Sangguniang Barangay. Review decisions and positions taken on community matters.",
@@ -102,6 +95,17 @@ const services = [
     bg: "from-teal-50 to-teal-100",
     border: "border-teal-200",
     text: "text-teal-700",
+  },
+  {
+    title: "Citizens Charter",
+    desc: "View the official Citizens Charter of Barangay Luyang. Our commitment to quality service for every resident.",
+    icon: <BookOpen className="w-8 h-8" />,
+    linkText: "View Charter",
+    linkTo: "/citizens-charter",
+    color: "from-emerald-500 to-emerald-700",
+    bg: "from-emerald-50 to-emerald-100",
+    border: "border-emerald-200",
+    text: "text-emerald-700",
   },
 ];
 

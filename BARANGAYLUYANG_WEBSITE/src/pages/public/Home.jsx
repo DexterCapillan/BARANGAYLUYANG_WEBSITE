@@ -4,7 +4,6 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FileText,
   HeartPulse,
   Megaphone,
   Users,
@@ -14,21 +13,16 @@ import {
   ChevronRight,
   MapPin,
   Phone,
-  Mail
+  Mail,
+  ScrollText,
+  FileText,
+  BookOpen
 } from "lucide-react";
 import { useAnnouncements } from "../../context/useAnnouncements";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1598714805247-5dd7fe699792?w=1600&q=80";
 
 const services = [
-  {
-    title: "Barangay Clearance",
-    desc: "Request barangay clearance and certificates online quickly and securely.",
-    icon: <FileText className="w-10 h-10 text-blue-700" />,
-    link: "/services",
-    color: "from-blue-50 to-blue-100",
-    border: "border-blue-200"
-  },
   {
     title: "Health Services",
     desc: "Check programs, schedules, and announcements at the Health Center.",
@@ -46,13 +40,21 @@ const services = [
     border: "border-yellow-200"
   },
   {
-    title: "Resident Records",
-    desc: "Manage resident information securely and efficiently.",
-    icon: <Users className="w-10 h-10 text-purple-600" />,
-    link: "/services/residents",
-    color: "from-purple-50 to-purple-100",
-    border: "border-purple-200"
-  }
+    title: "Legislation",
+    desc: "Access executive orders, ordinances, and resolutions from the barangay.",
+    icon: <ScrollText className="w-10 h-10 text-blue-600" />,
+   link: "/services",
+    color: "from-blue-50 to-blue-100",
+    border: "border-blue-200"
+  },
+  {
+    title: "Citizens Charter",
+    desc: "View our commitment to quality service for every resident of Barangay Luyang.",
+    icon: <BookOpen className="w-10 h-10 text-emerald-600" />,
+    link: "/citizens-charter",
+    color: "from-emerald-50 to-emerald-100",
+    border: "border-emerald-200"
+  },
 ];
 
 const testimonials = [
@@ -82,7 +84,6 @@ export default function Home() {
   const [heroImage, setHeroImage] = useState(FALLBACK_IMAGE);
   const [selected, setSelected] = useState(null);
 
-  // Resident count listener
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "public", "residentCount"), (snap) => {
       if (snap.exists()) setResidentCount(snap.data().total);
@@ -90,7 +91,6 @@ export default function Home() {
     return () => unsub();
   }, []);
 
-  // Hero image listener
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "settings", "heroImage"), (snap) => {
       if (snap.exists() && snap.data().url) {
@@ -102,8 +102,8 @@ export default function Home() {
 
   const stats = [
     { icon: <Users className="w-8 h-8 text-white" />, label: "Registered Residents", value: residentCount, bg: "from-blue-500 to-blue-700" },
-    { icon: <FileText className="w-8 h-8 text-white" />, label: "Clearances Issued", value: 870, bg: "from-green-500 to-green-700" },
-    { icon: <Megaphone className="w-8 h-8 text-white" />, label: "Announcements", value: announcements.length, bg: "from-yellow-400 to-yellow-600" }
+    { icon: <Megaphone className="w-8 h-8 text-white" />, label: "Announcements", value: announcements.length, bg: "from-yellow-400 to-yellow-600" },
+    { icon: <FileText className="w-8 h-8 text-white" />, label: "Services Available", value: 8, bg: "from-green-500 to-green-700" }
   ];
 
   return (
@@ -168,22 +168,10 @@ export default function Home() {
           style={{ backgroundImage: `url('${heroImage}')` }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-blue-950/80 via-blue-900/75 to-blue-950/90" />
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
-          transition={{ repeat: Infinity, duration: 8 }}
-          className="absolute -bottom-24 -right-24 w-96 h-96 bg-yellow-400 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.08, 1], opacity: [0.1, 0.2, 0.1] }}
-          transition={{ repeat: Infinity, duration: 10 }}
-          className="absolute -top-24 -left-24 w-96 h-96 bg-blue-400 rounded-full blur-3xl"
-        />
-        <motion.div
-          className="relative z-10 max-w-4xl mx-auto text-center px-6 space-y-6"
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
+        <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }} transition={{ repeat: Infinity, duration: 8 }} className="absolute -bottom-24 -right-24 w-96 h-96 bg-yellow-400 rounded-full blur-3xl" />
+        <motion.div animate={{ scale: [1, 1.08, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ repeat: Infinity, duration: 10 }} className="absolute -top-24 -left-24 w-96 h-96 bg-blue-400 rounded-full blur-3xl" />
+
+        <motion.div className="relative z-10 max-w-4xl mx-auto text-center px-6 space-y-6" initial="hidden" animate="visible" variants={containerVariants}>
           <motion.div variants={fadeUp} className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm text-blue-100">
             <MapPin className="w-3.5 h-3.5 text-yellow-400" />
             Cagayan Valley, Philippines
@@ -204,12 +192,11 @@ export default function Home() {
             </Link>
           </motion.div>
 
-          {/* QUICK STATS ROW */}
           <motion.div variants={fadeUp} className="grid grid-cols-3 gap-4 pt-8 max-w-xl mx-auto">
             {[
               { value: residentCount, label: "Residents" },
-              { value: 870, label: "Clearances" },
-              { value: announcements.length, label: "Announcements" }
+              { value: announcements.length, label: "Announcements" },
+              { value: 8, label: "Services" }
             ].map((s, i) => (
               <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
                 <p className="text-2xl font-extrabold text-yellow-400">{s.value?.toLocaleString()}</p>
@@ -219,11 +206,7 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ repeat: Infinity, duration: 1.8 }}
-        >
+        <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2" animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.8 }}>
           <div className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center pt-2">
             <div className="w-1 h-2 bg-white/60 rounded-full" />
           </div>
@@ -263,11 +246,7 @@ export default function Home() {
         </motion.div>
         <motion.div className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto" variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
           {stats.map((stat, idx) => (
-            <motion.div
-              key={idx}
-              className="relative bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-8 flex flex-col items-center text-center hover:bg-white/20 transition-colors"
-              variants={cardVariants}
-            >
+            <motion.div key={idx} className="relative bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-8 flex flex-col items-center text-center hover:bg-white/20 transition-colors" variants={cardVariants}>
               <div className={`p-4 rounded-2xl bg-gradient-to-br ${stat.bg} shadow-lg mb-4`}>{stat.icon}</div>
               <h3 className="text-4xl font-extrabold text-white">{stat.value?.toLocaleString()}</h3>
               <p className="text-blue-200 mt-1 text-sm">{stat.label}</p>
@@ -286,7 +265,7 @@ export default function Home() {
           <p className="text-center text-slate-500">No announcements yet.</p>
         ) : (
           <motion.div className="grid sm:grid-cols-1 md:grid-cols-3 gap-6" variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            {[...announcements].reverse().slice(0, 3).map((ann, idx) => (
+            {[...announcements].slice(0, 3).map((ann, idx) => (
               <motion.div
                 key={idx}
                 className="group bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"

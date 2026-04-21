@@ -1,6 +1,6 @@
 // src/components/common/Sidebar.jsx
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, FileText, Megaphone, HeartPulse, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, HeartPulse, Settings, ScrollText } from "lucide-react";
 
 export default function Sidebar() {
   const location = useLocation();
@@ -8,9 +8,9 @@ export default function Sidebar() {
   const links = [
     { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
     { name: "Residents", path: "/admin/residents", icon: Users },
-    { name: "Certificates", path: "/admin/certificates", icon: FileText },
     { name: "Announcements", path: "/admin/announcements", icon: Megaphone },
     { name: "Health Services", path: "/admin/health", icon: HeartPulse },
+    { name: "Legislation", path: "/admin/legislation", icon: ScrollText },
     { name: "Settings", path: "/admin/settings", icon: Settings },
   ];
 
