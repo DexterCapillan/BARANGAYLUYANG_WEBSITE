@@ -1,4 +1,4 @@
-// src/App.jsx
+// src/App.jsx // v2
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/common/ScrollToTop";
 import { AnnouncementsProvider } from "./context/AnnouncementsContext";
