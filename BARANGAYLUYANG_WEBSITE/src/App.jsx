@@ -2,7 +2,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/common/ScrollToTop";
 import { AnnouncementsProvider } from "./context/AnnouncementsContext";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/authContext";
 import { HealthProvider } from "./context/HealthContext";
 import { ResidentsProvider } from "./context/ResidentsContext";
 import { LegislationProvider } from "./context/LegislationContext";
