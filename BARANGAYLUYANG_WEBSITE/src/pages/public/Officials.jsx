@@ -56,7 +56,7 @@ export default function Officials() {
             <div className="h-96 overflow-hidden">
               <motion.img
                 src={captain.image} alt={captain.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.4 }}
               />
@@ -90,7 +90,7 @@ export default function Officials() {
               <div className="h-64 overflow-hidden bg-slate-100">
                 <motion.img
                   src={person.image} alt={person.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.3 }}
                 />

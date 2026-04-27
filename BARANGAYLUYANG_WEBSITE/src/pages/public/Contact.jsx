@@ -1,5 +1,11 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, CheckCircle, Loader2 } from "lucide-react";
+import emailjs from "@emailjs/browser";
+
+const EMAILJS_SERVICE_ID = "service_nzf0jks";
+const EMAILJS_TEMPLATE_ID = "template_xhjr4vm";
+const EMAILJS_PUBLIC_KEY = "4qDEWLrgO9aDkNoK0";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -7,6 +13,42 @@ const fadeUp = {
 };
 
 export default function Contact() {
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleChange(e) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSending(true);
+    setError("");
+
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          name: form.name,
+          email: form.email,
+          subject: form.subject,
+          message: form.message,
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+      setSent(true);
+      setForm({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      console.error(err);
+      setError("Failed to send message. Please try again.");
+    }
+
+    setSending(false);
+  }
+
   return (
     <div className="bg-white pt-24">
 
@@ -26,13 +68,11 @@ export default function Contact() {
 
           {/* LEFT: INFO + MAP */}
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="space-y-8">
-
-            {/* INFO CARDS */}
             <div className="grid grid-cols-2 gap-4">
               {[
                 { icon: <MapPin className="w-5 h-5 text-blue-600" />, label: "Address", value: "Barangay Luyang Hall, Bayombong, Nueva Vizcaya", bg: "bg-blue-50" },
                 { icon: <Phone className="w-5 h-5 text-green-600" />, label: "Phone", value: "+63 912 345 6789", bg: "bg-green-50" },
-                { icon: <Mail className="w-5 h-5 text-yellow-600" />, label: "Email", value: "barangayluyang@email.com", bg: "bg-yellow-50" },
+                { icon: <Mail className="w-5 h-5 text-yellow-600" />, label: "Email", value: "blguluyang03@gmail.com", bg: "bg-yellow-50" },
                 { icon: <Clock className="w-5 h-5 text-purple-600" />, label: "Office Hours", value: "Mon–Fri, 8AM–5PM", bg: "bg-purple-50" },
               ].map((item, i) => (
                 <div key={i} className={`${item.bg} p-4 rounded-2xl`}>
@@ -61,40 +101,74 @@ export default function Contact() {
                 <span className="text-sm font-semibold text-blue-600 uppercase tracking-widest">Send a Message</span>
                 <h2 className="text-2xl font-bold text-blue-900 mt-1">We'd love to hear from you</h2>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition"
-                  placeholder="Your full name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email Address</label>
-                <input
-                  type="email"
-                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition"
-                  placeholder="your@email.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Subject</label>
-                <input
-                  type="text"
-                  className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition"
-                  placeholder="How can we help?"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Message</label>
-                <textarea
-                  className="w-full p-3 border border-slate-200 rounded-xl h-32 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition resize-none"
-                  placeholder="Your message..."
-                />
-              </div>
-              <button className="w-full bg-blue-900 text-white font-bold py-3.5 rounded-xl hover:bg-blue-800 hover:scale-[1.01] transition-all duration-200 shadow-md">
-                Send Message
-              </button>
+
+              {/* SUCCESS STATE */}
+              {sent ? (
+                <div className="flex flex-col items-center justify-center py-10 space-y-3 text-center">
+                  <CheckCircle className="w-14 h-14 text-emerald-500" />
+                  <h3 className="text-lg font-bold text-slate-800">Message Sent!</h3>
+                  <p className="text-slate-500 text-sm">Thank you for reaching out. We'll get back to you as soon as possible.</p>
+                  <button
+                    onClick={() => setSent(false)}
+                    className="mt-2 text-sm text-blue-600 hover:underline"
+                  >
+                    Send another message
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
+                    <input
+                      type="text" name="name" value={form.name}
+                      onChange={handleChange} required
+                      className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition"
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Email Address</label>
+                    <input
+                      type="email" name="email" value={form.email}
+                      onChange={handleChange} required
+                      className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Subject</label>
+                    <input
+                      type="text" name="subject" value={form.subject}
+                      onChange={handleChange} required
+                      className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm transition"
+                      placeholder="How can we help?"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Message</label>
+                    <textarea
+                      name="message" value={form.message}
+                      onChange={handleChange} required
+                      className="w-full p-3 border border-slate-200 rounded-xl h-32 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition resize-none"
+                      placeholder="Your message..."
+                    />
+                  </div>
+
+                  {error && (
+                    <p className="text-sm text-red-500">{error}</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="w-full bg-blue-900 text-white font-bold py-3.5 rounded-xl hover:bg-blue-800 hover:scale-[1.01] transition-all duration-200 shadow-md disabled:opacity-60 flex items-center justify-center gap-2"
+                  >
+                    {sending ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+                    ) : "Send Message"}
+                  </button>
+                </form>
+              )}
             </div>
           </motion.div>
         </div>

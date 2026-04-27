@@ -1,7 +1,7 @@
 // src/pages/public/Health.jsx
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { HeartPulse, Calendar, BookOpen, Clock, MapPin, Users, X, ChevronRight } from "lucide-react";
+import { HeartPulse, Calendar, BookOpen, Clock, MapPin, Users, X, ChevronRight, ClipboardList } from "lucide-react";
 import { useHealth } from "../../context/useHealth";
 
 const fadeUp = {
@@ -18,6 +18,22 @@ const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
 };
+
+const communityServices = [
+  { service: "Immunization & Prenatal Visit", schedule: "Every 2nd & 3rd Wednesday" },
+  { service: "Family Planning", schedule: "Monday to Friday" },
+  { service: "Dengue Awareness Month", schedule: "Every year" },
+  { service: "GP & OPT", schedule: "Twice a year" },
+  { service: "Purok Kalusugan", schedule: "Every year" },
+  { service: "Women's Month Celebration", schedule: "Every year" },
+  { service: "Feeding Program (Malnourished Children)", schedule: "" },
+  { service: "Measles Outbreak Response", schedule: "As needed" },
+  { service: "Anti Rabies Program", schedule: "Every year" },
+  { service: "HIV Program", schedule: "" },
+  { service: "BP Monitoring", schedule: "" },
+  { service: "Maternal Care", schedule: "" },
+  { service: "Exclusive Breastfeeding (0–6 Months)", schedule: "" },
+];
 
 export default function Health() {
   const { posts, schedules, programs } = useHealth();
@@ -99,7 +115,6 @@ export default function Health() {
           </div>
           <p className="text-slate-500 text-sm ml-12">Latest news and updates from the Barangay Health Center.</p>
         </motion.div>
-
         {posts.length === 0 ? (
           <p className="text-slate-400 text-sm ml-12">No announcements at the moment.</p>
         ) : (
@@ -144,7 +159,6 @@ export default function Health() {
             </div>
             <p className="text-slate-500 text-sm ml-12">Upcoming health activities and clinic hours.</p>
           </motion.div>
-
           {schedules.length === 0 ? (
             <p className="text-slate-400 text-sm ml-12">No schedules posted yet.</p>
           ) : (
@@ -182,44 +196,94 @@ export default function Health() {
         </div>
       </section>
 
-      {/* PROGRAMS SECTION */}
+      {/* COMMUNITY HEALTH SERVICES TABLE */}
       <section className="max-w-7xl mx-auto px-6 py-16">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mb-10">
           <div className="flex items-center gap-3 mb-2">
             <div className="bg-green-100 p-2 rounded-lg">
-              <BookOpen className="w-5 h-5 text-green-700" />
+              <ClipboardList className="w-5 h-5 text-green-700" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800">Health Programs</h2>
+            <h2 className="text-2xl font-bold text-slate-800">Community Health Services</h2>
           </div>
-          <p className="text-slate-500 text-sm ml-12">Community health programs available to Barangay Luyang residents.</p>
+          <p className="text-slate-500 text-sm ml-12">Complete list of health services offered at Barangay Luyang Health Center.</p>
         </motion.div>
 
-        {programs.length === 0 ? (
-          <p className="text-slate-400 text-sm ml-12">No programs listed yet.</p>
-        ) : (
-          <motion.div
-            className="grid sm:grid-cols-2 md:grid-cols-3 gap-6"
-            variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-          >
-            {programs.map((pg) => (
-              <motion.div
-                key={pg.id} variants={cardVariants}
-                className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-bold text-slate-800 leading-snug">{pg.title}</h3>
-                </div>
-                <div className="flex items-center gap-1.5 mb-3">
-                  <Users className="w-3.5 h-3.5 text-green-600" />
-                  <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                    {pg.targetGroup}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-600 leading-relaxed">{pg.description}</p>
-              </motion.div>
-            ))}
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+          className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm"
+        >
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-gradient-to-r from-green-700 to-emerald-600 text-white">
+                <th className="px-6 py-4 text-sm font-bold uppercase tracking-wide w-8">#</th>
+                <th className="px-6 py-4 text-sm font-bold uppercase tracking-wide">Service</th>
+                <th className="px-6 py-4 text-sm font-bold uppercase tracking-wide">Schedule</th>
+              </tr>
+            </thead>
+            <tbody>
+              {communityServices.map((item, idx) => (
+                <tr
+                  key={idx}
+                  className={`border-t border-slate-100 transition-colors hover:bg-green-50/50 ${
+                    idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+                  }`}
+                >
+                  <td className="px-6 py-4 text-sm text-slate-400 font-medium">{idx + 1}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-slate-800">{item.service}</td>
+                  <td className="px-6 py-4">
+                    {item.schedule ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-100 px-3 py-1 rounded-full">
+                        <Clock className="w-3 h-3" />
+                        {item.schedule}
+                      </span>
+                    ) : null}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </motion.div>
+      </section>
+
+      {/* PROGRAMS SECTION */}
+      <section className="bg-green-50 py-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mb-10">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <BookOpen className="w-5 h-5 text-green-700" />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-800">Health Programs</h2>
+            </div>
+            <p className="text-slate-500 text-sm ml-12">Community health programs available to Barangay Luyang residents.</p>
           </motion.div>
-        )}
+          {programs.length === 0 ? (
+            <p className="text-slate-400 text-sm ml-12">No programs listed yet.</p>
+          ) : (
+            <motion.div
+              className="grid sm:grid-cols-2 md:grid-cols-3 gap-6"
+              variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
+            >
+              {programs.map((pg) => (
+                <motion.div
+                  key={pg.id} variants={cardVariants}
+                  className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-bold text-slate-800 leading-snug">{pg.title}</h3>
+                  </div>
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <Users className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                      {pg.targetGroup}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-600 leading-relaxed">{pg.description}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </div>
       </section>
 
     </div>

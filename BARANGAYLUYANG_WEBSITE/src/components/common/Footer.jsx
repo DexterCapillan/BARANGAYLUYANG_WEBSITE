@@ -68,29 +68,29 @@ export default function Footer() {
           </div>
 
           {/* SERVICES */}
-          <div>
-            <h3 className="text-white font-semibold text-sm uppercase tracking-widest mb-5">
-              Services
-            </h3>
-            <ul className="space-y-2.5">
-              {[
-               "Barangay Clearance",
-               "Health Services",
-               "Announcements",
-               "Resident Records",
-              ].map((service) => (
-                <li key={service}>
-                  <Link
-                    to="/services"
-                    className="text-sm text-blue-300 hover:text-yellow-400 transition-colors duration-200 flex items-center gap-2 group"
-                  >
-                    <span className="w-1 h-1 rounded-full bg-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {service}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+<div>
+  <h3 className="text-white font-semibold text-sm uppercase tracking-widest mb-5">
+    Services
+  </h3>
+  <ul className="space-y-2.5">
+    {[
+      { label: "Legislation", to: "/services" },
+      { label: "Health Services", to: "/health" },
+      { label: "Announcements", to: "/services/announcements" },
+      { label: "Resident Records", to: "/services/residents" },
+    ].map(({ label, to }) => (
+      <li key={label}>
+        <Link
+          to={to}
+          className="text-sm text-blue-300 hover:text-yellow-400 transition-colors duration-200 flex items-center gap-2 group"
+        >
+          <span className="w-1 h-1 rounded-full bg-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+          {label}
+        </Link>
+      </li>
+    ))}
+  </ul>
+</div>
 
           {/* CONTACT */}
           <div>
@@ -122,7 +122,7 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="text-xs text-blue-400 mb-0.5">Email</p>
-                  <p className="text-sm text-blue-200">barangayluyang@email.com</p>
+                  <p className="text-sm text-blue-200">blguluyang03@email.com</p>
                 </div>
               </div>
             </div>
