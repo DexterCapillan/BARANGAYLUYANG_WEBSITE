@@ -33,7 +33,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import Login from "./pages/admin/Login";
 import AdminAnnouncements from "./pages/admin/Announcements";
 import HealthServices from "./pages/admin/HealthServices";
-import ResidentsPage from "./features/residents/ResidentsPage";
+import ResidentsPage from "./features/residents/residentsPage";
 import Legislation from "./pages/admin/Legislation";
 import AdminGallery from "./pages/admin/Gallery";
 
