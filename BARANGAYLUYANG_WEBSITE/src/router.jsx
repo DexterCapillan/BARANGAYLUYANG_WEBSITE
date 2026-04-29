@@ -9,12 +9,14 @@ import Services from "./pages/public/Services";
 import Officials from "./pages/public/Officials";
 import Contact from "./pages/public/Contact";
 import PublicAnnouncements from "./pages/public/Announcements";
+import TaxesAndFees from "./pages/public/TaxesAndFees";
 
 // ADMIN
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import ResidentsPage from "./features/residents/residentsPage";
 import AdminAnnouncements from "./pages/admin/Announcements";
+import AdminTaxesAndFees from "./pages/admin/AdminTaxesAndFees";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +29,7 @@ export const router = createBrowserRouter([
       { path: "officials", element: <Officials /> },
       { path: "contact", element: <Contact /> },
       { path: "announcements", element: <PublicAnnouncements /> },
+      { path: "taxes-and-fees", element: <TaxesAndFees /> },
     ],
   },
   {
@@ -36,6 +39,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: "residents", element: <ResidentsPage /> },
       { path: "announcements", element: <AdminAnnouncements /> },
+      { path: "taxes-and-fees", element: <AdminTaxesAndFees /> },
     ],
   },
 ]);

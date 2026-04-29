@@ -27,6 +27,7 @@ import ExecutiveOrders from "./pages/public/ExecutiveOrders";
 import Ordinances from "./pages/public/Ordinances";
 import Resolutions from "./pages/public/Resolutions";
 import CitizensCharter from "./pages/public/CitizensCharter";
+import TaxesAndFees from "./pages/public/TaxesAndFees";
 
 // ADMIN PAGES
 import Dashboard from "./pages/admin/Dashboard";
@@ -36,6 +37,7 @@ import HealthServices from "./pages/admin/HealthServices";
 import ResidentsPage from "./features/residents/residentsPage";
 import Legislation from "./pages/admin/Legislation";
 import AdminGallery from "./pages/admin/Gallery";
+import AdminTaxesAndFees from "./pages/admin/AdminTaxesAndFees";
 
 function AdminApp() {
   return (
@@ -72,6 +74,7 @@ export default function App() {
                     <Route path="/services/executive-orders" element={<ExecutiveOrders />} />
                     <Route path="/services/ordinances" element={<Ordinances />} />
                     <Route path="/services/resolutions" element={<Resolutions />} />
+                    <Route path="/services/taxes-and-fees" element={<TaxesAndFees />} />
                   </Route>
 
                   {/* ADMIN LOGIN */}
@@ -86,6 +89,7 @@ export default function App() {
                     <Route path="settings" element={<Settings />} />
                     <Route path="legislation" element={<Legislation />} />
                     <Route path="gallery" element={<AdminGallery />} />
+                    <Route path="taxes-and-fees" element={<AdminTaxesAndFees />} />
                   </Route>
 
                 </Routes>
