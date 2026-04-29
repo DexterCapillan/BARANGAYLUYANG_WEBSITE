@@ -2,9 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { db } from "../../firebase";
 import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { Settings as SettingsIcon, Upload, ImageIcon, Check, Loader2, Trash2 } from "lucide-react";
-
-const CLOUDINARY_CLOUD_NAME = "docfy1wj6";
-const CLOUDINARY_UPLOAD_PRESET = "barangay_images";
+import { uploadFile } from "../../services/storage";
 
 export default function Settings() {
   const [currentImage, setCurrentImage] = useState("");
@@ -38,47 +36,33 @@ export default function Settings() {
     setUploading(true);
     setProgress(0);
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
     try {
-      const xhr = new XMLHttpRequest();
+      // Simulate progress since Supabase doesn't have progress events
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) { clearInterval(interval); return 90; }
+          return prev + 10;
+        });
+      }, 200);
 
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) {
-          const pct = Math.round((e.loaded / e.total) * 100);
-          setProgress(pct);
-        }
-      });
+      // Upload to Supabase
+      const downloadURL = await uploadFile(file, "images");
 
-      xhr.addEventListener("load", async () => {
-        if (xhr.status === 200) {
-          const data = JSON.parse(xhr.responseText);
-          const downloadURL = data.secure_url;
-          await setDoc(doc(db, "settings", "heroImage"), { url: downloadURL });
-          setCurrentImage(downloadURL);
-          setPreview(null);
-          setFile(null);
-          setUploading(false);
-          setSaved(true);
-          setTimeout(() => setSaved(false), 3000);
-        } else {
-          console.error("Upload failed:", xhr.responseText);
-          setUploading(false);
-        }
-      });
+      clearInterval(interval);
+      setProgress(100);
 
-      xhr.addEventListener("error", () => {
-        console.error("Upload error");
-        setUploading(false);
-      });
-
-      xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`);
-      xhr.send(formData);
+      // Save URL to Firebase
+      await setDoc(doc(db, "settings", "heroImage"), { url: downloadURL });
+      setCurrentImage(downloadURL);
+      setPreview(null);
+      setFile(null);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error("Upload error:", err);
+    } finally {
       setUploading(false);
+      setProgress(0);
     }
   }
 

@@ -1,9 +1,7 @@
 import { useState, useRef } from "react";
 import { useLegislation } from "../../context/useLegislation";
 import { ScrollText, Landmark, FileText, Plus, X, Trash2, Upload, Loader2, ImageIcon, FileUp, BookOpen } from "lucide-react";
-
-const CLOUDINARY_CLOUD_NAME = "docfy1wj6";
-const CLOUDINARY_UPLOAD_PRESET = "barangay_images";
+import { uploadFile } from "../../services/storage";
 
 const TABS = [
   { key: "executiveOrders", label: "Executive Orders", icon: ScrollText, color: "text-blue-600" },
@@ -15,18 +13,6 @@ const TABS = [
 const EMPTY_FORM = {
   title: "", date: "", description: "", images: [], pdfUrl: "",
 };
-
-async function uploadToCloudinary(file, resourceType = "image") {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
-    { method: "POST", body: formData }
-  );
-  const data = await res.json();
-  return data.secure_url;
-}
 
 export default function Legislation() {
   const {
@@ -84,15 +70,19 @@ export default function Legislation() {
     e.preventDefault();
     setSaving(true);
     try {
-      let images = [];
-      let pdfUrl = form.pdfUrl;
+      // Upload images to Supabase
+      const images = [];
       for (const file of imageFiles) {
-        const url = await uploadToCloudinary(file, "image");
+        const url = await uploadFile(file, "images");
         images.push(url);
       }
+
+      // Upload PDF to Supabase
+      let pdfUrl = form.pdfUrl;
       if (pdfFile) {
-        pdfUrl = await uploadToCloudinary(pdfFile, "raw");
+        pdfUrl = await uploadFile(pdfFile, "documents");
       }
+
       await addItem(activeTab, {
         ...form, images, pdfUrl,
         createdAt: new Date().toISOString(),
@@ -129,7 +119,8 @@ export default function Legislation() {
     if (!charterFile) return;
     setUploadingCharter(true);
     try {
-      const url = await uploadToCloudinary(charterFile, "image");
+      // Upload charter image to Supabase
+      const url = await uploadFile(charterFile, "images");
       await addCharterImage(url);
       setCharterFile(null);
       setCharterPreview(null);
@@ -190,7 +181,6 @@ export default function Legislation() {
       {/* CITIZENS CHARTER TAB */}
       {activeTab === "citizensCharter" && (
         <div className="space-y-6">
-          {/* UPLOAD NEW PAGE */}
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
             <div>
               <h2 className="text-base font-semibold text-slate-800">Upload Charter Page</h2>
@@ -228,7 +218,6 @@ export default function Legislation() {
             )}
           </div>
 
-          {/* EXISTING PAGES */}
           <div>
             <h2 className="text-sm font-semibold text-slate-700 mb-3">
               Charter Pages ({charterImages.length})
@@ -277,7 +266,7 @@ export default function Legislation() {
         </div>
       )}
 
-      {/* ADD FORM - for other tabs */}
+      {/* ADD FORM */}
       {activeTab !== "citizensCharter" && showForm && (
         <div className="bg-white border border-slate-200 rounded-xl p-6">
           <h2 className="text-base font-semibold text-slate-800 mb-4">
@@ -374,7 +363,7 @@ export default function Legislation() {
         </div>
       )}
 
-      {/* ITEMS LIST - for other tabs */}
+      {/* ITEMS LIST */}
       {activeTab !== "citizensCharter" && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.length === 0 && (

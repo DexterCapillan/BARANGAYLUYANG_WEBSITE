@@ -1,9 +1,7 @@
 import { useState, useRef } from "react";
 import { useGallery } from "../../context/useGallery";
 import { Image, Upload, X, Trash2, Loader } from "lucide-react";
-
-const CLOUD_NAME = "docfy1wj6";
-const UPLOAD_PRESET = "barangay_images";
+import { uploadFile } from "../../services/storage";
 
 export default function AdminGallery() {
   const { photos, addPhoto, deletePhoto } = useGallery();
@@ -25,16 +23,9 @@ export default function AdminGallery() {
     if (!selectedFile) return;
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("upload_preset", UPLOAD_PRESET);
-
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-        { method: "POST", body: formData }
-      );
-      const data = await res.json();
-      await addPhoto(data.secure_url, caption);
+      // Supabase upload instead of Cloudinary
+      const url = await uploadFile(selectedFile, "images");
+      await addPhoto(url, caption);
       setCaption("");
       setPreview(null);
       setSelectedFile(null);

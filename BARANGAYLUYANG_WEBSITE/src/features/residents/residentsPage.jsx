@@ -3,7 +3,7 @@ import { useResidents } from "../../context/useResidents";
 import * as XLSX from "xlsx";
 import {
   Users, Upload, Plus, X, Search, Trash2,
-  ChevronLeft, ChevronRight, FileSpreadsheet
+  ChevronLeft, ChevronRight, FileSpreadsheet, Filter
 } from "lucide-react";
 
 const EMPTY_FORM = {
@@ -15,10 +15,50 @@ const EMPTY_FORM = {
 
 const PAGE_SIZE = 20;
 
+// Calculate real current age from birthDate string
+function getAge(birthDate) {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  if (isNaN(birth)) return null;
+  const today = new Date();
+  let years = today.getFullYear() - birth.getFullYear();
+  let months = today.getMonth() - birth.getMonth();
+  if (months < 0 || (months === 0 && today.getDate() < birth.getDate())) {
+    years--;
+    months += 12;
+  }
+  if (today.getDate() < birth.getDate()) months--;
+  if (years === 0) return { years: 0, months: ((today.getMonth() - birth.getMonth() + 12) % 12) };
+  return { years, months: 0 };
+}
+
+function displayAge(birthDate, fallbackAge) {
+  const age = getAge(birthDate);
+  if (!age) return fallbackAge || "—";
+  if (age.years === 0) return `${age.months}mo`;
+  return `${age.years}`;
+}
+
+function getAgeYears(birthDate, fallbackAge) {
+  const age = getAge(birthDate);
+  if (!age) return parseInt(fallbackAge) ?? null;
+  return age.years;
+}
+
+function getAgeMonths(birthDate) {
+  const age = getAge(birthDate);
+  if (!age) return null;
+  if (age.years > 0) return null;
+  return age.months;
+}
+
 export default function ResidentsPage() {
-  const { residents, stats, addResident, addResidentsBulk, deleteResident, updateStats } = useResidents();
+  const { residents, stats, addResident, deleteResident, updateStats } = useResidents();
 
   const [search, setSearch] = useState("");
+  const [minAge, setMinAge] = useState("");
+  const [maxAge, setMaxAge] = useState("");
+  const [infantsOnly, setInfantsOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -28,12 +68,43 @@ export default function ResidentsPage() {
   const [editingStats, setEditingStats] = useState(false);
   const fileRef = useRef();
 
+  // --- FILTER LOGIC ---
   const filtered = residents.filter((r) => {
     const full = `${r.firstName} ${r.lastName}`.toLowerCase();
-    return full.includes(search.toLowerCase());
+    const matchesName = full.includes(search.toLowerCase());
+
+    if (infantsOnly) {
+      const months = getAgeMonths(r.birthDate);
+      const years = getAgeYears(r.birthDate, r.age);
+      return matchesName && (months !== null || years === 0);
+    }
+
+    const years = getAgeYears(r.birthDate, r.age);
+    const min = minAge !== "" ? parseInt(minAge) : null;
+    const max = maxAge !== "" ? parseInt(maxAge) : null;
+
+    let matchesAge = true;
+    if (min !== null && max !== null) {
+      matchesAge = years !== null && years >= min && years <= max;
+    } else if (min !== null) {
+      matchesAge = years !== null && years >= min;
+    } else if (max !== null) {
+      matchesAge = years !== null && years <= max;
+    }
+
+    return matchesName && matchesAge;
   });
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const isFiltered = infantsOnly || minAge !== "" || maxAge !== "";
+
+  function resetFilters() {
+    setMinAge("");
+    setMaxAge("");
+    setInfantsOnly(false);
+    setPage(1);
+  }
 
   function handleFormChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -80,10 +151,11 @@ export default function ResidentsPage() {
     e.target.value = "";
   }
 
-  // Uses bulk import — fast, one public count update at the end
   async function handleConfirmImport() {
     setImporting(true);
-    await addResidentsBulk(importPreview);
+    for (const resident of importPreview) {
+      await addResident(resident);
+    }
     setImporting(false);
     setShowImportModal(false);
     setImportPreview([]);
@@ -103,7 +175,7 @@ export default function ResidentsPage() {
       "Purok/Zone": r.purok,
       "Place of Birth": r.placeOfBirth,
       "Birth Date": r.birthDate,
-      "Age": r.age,
+      "Age (Calculated)": displayAge(r.birthDate, r.age),
       "Sex": r.sex,
       "Civil Status": r.civilStatus,
       "Citizenship": r.citizenship,
@@ -113,6 +185,14 @@ export default function ResidentsPage() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Residents");
     XLSX.writeFile(wb, filename);
+  }
+
+  function getExportFilename() {
+    if (infantsOnly) return "residents_0_to_11_months.xlsx";
+    if (minAge !== "" && maxAge !== "") return `residents_age_${minAge}_to_${maxAge}.xlsx`;
+    if (minAge !== "") return `residents_age_${minAge}_and_above.xlsx`;
+    if (maxAge !== "") return `residents_age_0_to_${maxAge}.xlsx`;
+    return "all_residents.xlsx";
   }
 
   return (
@@ -131,24 +211,18 @@ export default function ResidentsPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileChange} />
           <button
-            onClick={() => handleExport(residents, "all_residents.xlsx")}
+            onClick={() => handleExport(filtered, getExportFilename())}
             className="flex items-center gap-2 text-sm border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export All
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            {isFiltered ? `Export (${filtered.length})` : "Export All"}
           </button>
-          {search && (
-            <button
-              onClick={() => handleExport(filtered, "residents_filtered.xlsx")}
-              className="flex items-center gap-2 text-sm border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-blue-500" /> Export Results ({filtered.length})
-            </button>
-          )}
           <button
             onClick={() => fileRef.current.click()}
             className="flex items-center gap-2 text-sm border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
           >
-            <FileSpreadsheet className="w-4 h-4 text-green-600" /> Import Excel
+            <FileSpreadsheet className="w-4 h-4 text-green-600" />
+            Import Excel
           </button>
           <button
             onClick={() => setShowForm((v) => !v)}
@@ -209,6 +283,63 @@ export default function ResidentsPage() {
         </button>
       </div>
 
+      {/* AGE FILTER */}
+      <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-slate-400" />
+            <span className="text-sm font-medium text-slate-700">Filter by Age</span>
+            {isFiltered && (
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+          {isFiltered && (
+            <button onClick={resetFilters} className="text-xs text-red-500 hover:text-red-700 underline">
+              Clear filter
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="text-xs text-slate-500 mb-1 block">Min age (years)</label>
+            <input
+              type="number" min="0" max="150"
+              value={minAge}
+              onChange={(e) => { setMinAge(e.target.value); setInfantsOnly(false); setPage(1); }}
+              placeholder="e.g. 1"
+              className="w-28 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <span className="text-slate-400 text-sm pb-2">to</span>
+          <div>
+            <label className="text-xs text-slate-500 mb-1 block">Max age (years)</label>
+            <input
+              type="number" min="0" max="150"
+              value={maxAge}
+              onChange={(e) => { setMaxAge(e.target.value); setInfantsOnly(false); setPage(1); }}
+              placeholder="e.g. 5"
+              className="w-28 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <span className="text-slate-300 text-sm pb-2">or</span>
+          <div className="pb-0.5">
+            <button
+              onClick={() => { setInfantsOnly((v) => !v); setMinAge(""); setMaxAge(""); setPage(1); }}
+              className={`text-xs px-4 py-2 rounded-lg border font-medium transition-colors ${
+                infantsOnly ? "bg-blue-900 text-white border-blue-900" : "border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              0 – 11 months (Infants)
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400">
+          Ages are calculated automatically from birth date. Tip: enter the same number in both fields for a specific age.
+        </p>
+      </div>
+
       {/* MANUAL FORM */}
       {showForm && (
         <div className="bg-white border border-slate-200 rounded-xl p-6">
@@ -228,7 +359,7 @@ export default function ResidentsPage() {
                 { name: "purok", label: "Purok/Zone" },
                 { name: "placeOfBirth", label: "Place of Birth" },
                 { name: "birthDate", label: "Birth Date" },
-                { name: "age", label: "Age" },
+                { name: "age", label: "Age (fallback)" },
                 { name: "citizenship", label: "Citizenship" },
                 { name: "occupation", label: "Occupation" },
               ].map(({ name, label }) => (
@@ -297,7 +428,7 @@ export default function ResidentsPage() {
               {paginated.length === 0 && (
                 <tr>
                   <td colSpan={8} className="px-4 py-10 text-sm text-slate-400 text-center">
-                    {search ? "No residents match your search." : "No residents yet. Import an Excel file or add manually."}
+                    {isFiltered || search ? "No residents match your filters." : "No residents yet. Import an Excel file or add manually."}
                   </td>
                 </tr>
               )}
@@ -307,13 +438,18 @@ export default function ResidentsPage() {
                   <td className="px-4 py-3 text-sm font-medium text-slate-800">
                     {`${r.lastName}, ${r.firstName} ${r.middleInitial ?? ""}`.trim()}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{r.age || "—"}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600">
+                    {displayAge(r.birthDate, r.age)}
+                  </td>
                   <td className="px-4 py-3 text-sm text-slate-600">{r.sex || "—"}</td>
                   <td className="px-4 py-3 text-sm text-slate-600">{r.civilStatus || "—"}</td>
                   <td className="px-4 py-3 text-sm text-slate-600">{r.purok || "—"}</td>
                   <td className="px-4 py-3 text-sm text-slate-600">{r.occupation || "—"}</td>
                   <td className="px-4 py-3">
-                    <button onClick={() => deleteResident(r.id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
+                    <button
+                      onClick={() => deleteResident(r.id)}
+                      className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
@@ -324,7 +460,7 @@ export default function ResidentsPage() {
         </div>
         <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
           <p className="text-xs text-slate-500">
-            Showing {Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length.toLocaleString()} residents
+            Showing {filtered.length === 0 ? 0 : Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length.toLocaleString()} residents
           </p>
           <div className="flex items-center gap-1">
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors">
@@ -347,13 +483,9 @@ export default function ResidentsPage() {
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                   <Upload className="w-5 h-5 text-green-600" /> Import Preview
                 </h2>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  {importPreview.length.toLocaleString()} residents found in file
-                </p>
+                <p className="text-sm text-slate-500 mt-0.5">{importPreview.length.toLocaleString()} residents found in file</p>
               </div>
-              <button onClick={() => setShowImportModal(false)}>
-                <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
-              </button>
+              <button onClick={() => setShowImportModal(false)}><X className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
             </div>
             <div className="overflow-auto flex-1 p-4">
               <table className="w-full text-left text-sm">
@@ -370,7 +502,7 @@ export default function ResidentsPage() {
                       <td className="px-3 py-2 text-slate-500">{r.idNo}</td>
                       <td className="px-3 py-2">{r.lastName}</td>
                       <td className="px-3 py-2">{r.firstName}</td>
-                      <td className="px-3 py-2">{r.age}</td>
+                      <td className="px-3 py-2">{displayAge(r.birthDate, r.age)}</td>
                       <td className="px-3 py-2">{r.sex}</td>
                       <td className="px-3 py-2">{r.purok}</td>
                     </tr>
@@ -378,15 +510,11 @@ export default function ResidentsPage() {
                 </tbody>
               </table>
               {importPreview.length > 10 && (
-                <p className="text-xs text-slate-400 text-center mt-3">
-                  ...and {importPreview.length - 10} more residents
-                </p>
+                <p className="text-xs text-slate-400 text-center mt-3">...and {importPreview.length - 10} more residents</p>
               )}
             </div>
             <div className="p-4 border-t border-slate-100 flex justify-end gap-3">
-              <button onClick={() => setShowImportModal(false)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                Cancel
-              </button>
+              <button onClick={() => setShowImportModal(false)} className="px-4 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
               <button
                 onClick={handleConfirmImport}
                 disabled={importing}
