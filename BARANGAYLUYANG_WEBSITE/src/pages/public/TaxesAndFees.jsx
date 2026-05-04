@@ -71,7 +71,9 @@ export default function TaxesAndFees() {
           <p className="text-center text-slate-400 py-16">No fees found.</p>
         ) : (
           categories.map((cat) => {
-            const items = filtered.filter((f) => f.category === cat);
+          const items = filtered
+  .filter((f) => f.category === cat)
+  .sort((a, b) => a.nature.localeCompare(b.nature));
             const isOpen = openCategories[cat];
             return (
               <div key={cat} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
