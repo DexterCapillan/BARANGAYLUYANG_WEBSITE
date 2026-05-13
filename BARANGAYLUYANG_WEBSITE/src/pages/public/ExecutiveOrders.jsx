@@ -102,9 +102,9 @@ export default function ExecutiveOrders() {
           </div>
         ) : (
           <motion.div
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
-          >
+  className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+  variants={containerVariants} initial="hidden" animate="visible"
+>
             {filtered.map((item) => (
               <motion.div
                 key={item.id}
