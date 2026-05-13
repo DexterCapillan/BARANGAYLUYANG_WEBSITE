@@ -2,7 +2,7 @@ import { createContext, useState, useEffect } from "react";
 import { db } from "../firebase";
 import {
   collection, onSnapshot, addDoc, deleteDoc,
-  doc, getDoc, setDoc
+  doc, getDoc, setDoc, updateDoc
 } from "firebase/firestore";
 
 export const LegislationContext = createContext(null);
@@ -37,6 +37,11 @@ export function LegislationProvider({ children }) {
     await deleteDoc(doc(db, collectionName, id));
   }
 
+  // ✅ NEW: Update title, date, description of an item
+  async function updateItem(collectionName, id, updates) {
+    await updateDoc(doc(db, collectionName, id), updates);
+  }
+
   async function addCharterImage(url) {
     const updated = [...charterImages, url];
     await setDoc(doc(db, "settings", "citizensCharter"), { images: updated });
@@ -51,7 +56,7 @@ export function LegislationProvider({ children }) {
     <LegislationContext.Provider value={{
       executiveOrders, ordinances, resolutions,
       charterImages,
-      addItem, deleteItem,
+      addItem, deleteItem, updateItem,
       addCharterImage, deleteCharterImage,
     }}>
       {children}

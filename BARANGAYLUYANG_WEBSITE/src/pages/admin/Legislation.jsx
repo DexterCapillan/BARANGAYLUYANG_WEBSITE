@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useLegislation } from "../../context/useLegislation";
-import { ScrollText, Landmark, FileText, Plus, X, Trash2, Upload, Loader2, ImageIcon, FileUp, BookOpen } from "lucide-react";
+import { ScrollText, Landmark, FileText, Plus, X, Trash2, Upload, Loader2, ImageIcon, FileUp, BookOpen, Pencil, Check } from "lucide-react";
 import { uploadFile } from "../../services/storage";
 
 const TABS = [
@@ -17,7 +17,7 @@ const EMPTY_FORM = {
 export default function Legislation() {
   const {
     executiveOrders, ordinances, resolutions,
-    charterImages, addItem, deleteItem,
+    charterImages, addItem, deleteItem, updateItem,
     addCharterImage, deleteCharterImage,
   } = useLegislation();
 
@@ -33,6 +33,11 @@ export default function Legislation() {
   const [charterPreview, setCharterPreview] = useState(null);
   const [uploadingCharter, setUploadingCharter] = useState(false);
   const [confirmDeleteCharter, setConfirmDeleteCharter] = useState(null);
+
+  // EDIT STATE
+  const [editId, setEditId] = useState(null);
+  const [editForm, setEditForm] = useState({ title: "", date: "", description: "" });
+  const [editSaving, setEditSaving] = useState(false);
 
   const imageRef = useRef();
   const pdfRef = useRef();
@@ -70,14 +75,12 @@ export default function Legislation() {
     e.preventDefault();
     setSaving(true);
     try {
-      // Upload images to Supabase
       const images = [];
       for (const file of imageFiles) {
         const url = await uploadFile(file, "images");
         images.push(url);
       }
 
-      // Upload PDF to Supabase
       let pdfUrl = form.pdfUrl;
       if (pdfFile) {
         pdfUrl = await uploadFile(pdfFile, "documents");
@@ -106,6 +109,32 @@ export default function Legislation() {
     setShowForm(false);
   }
 
+  // EDIT HANDLERS
+  function startEdit(item) {
+    setEditId(item.id);
+    setEditForm({ title: item.title, date: item.date, description: item.description });
+  }
+
+  function cancelEdit() {
+    setEditId(null);
+    setEditForm({ title: "", date: "", description: "" });
+  }
+
+  async function saveEdit(item) {
+    setEditSaving(true);
+    try {
+      await updateItem(activeTab, item.id, {
+        title: editForm.title,
+        date: editForm.date,
+        description: editForm.description,
+      });
+      setEditId(null);
+    } catch (err) {
+      console.error("Edit error:", err);
+    }
+    setEditSaving(false);
+  }
+
   // CHARTER HANDLERS
   function handleCharterFileChange(e) {
     const f = e.target.files[0];
@@ -119,7 +148,6 @@ export default function Legislation() {
     if (!charterFile) return;
     setUploadingCharter(true);
     try {
-      // Upload charter image to Supabase
       const url = await uploadFile(charterFile, "images");
       await addCharterImage(url);
       setCharterFile(null);
@@ -155,7 +183,7 @@ export default function Legislation() {
         {TABS.map(({ key, label, icon: Icon, color }) => (
           <button
             key={key}
-            onClick={() => { setActiveTab(key); resetForm(); }}
+            onClick={() => { setActiveTab(key); resetForm(); cancelEdit(); }}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === key
                 ? `border-blue-600 ${color}`
@@ -386,46 +414,109 @@ export default function Legislation() {
                 {item.images?.length > 1 && (
                   <span className="text-xs text-slate-400">{item.images.length} images</span>
                 )}
-                <p className="text-xs text-slate-400">{item.date}</p>
-                <h3 className="font-semibold text-slate-800 text-sm leading-snug">{item.title}</h3>
-                <p className="text-xs text-slate-500 line-clamp-2">{item.description}</p>
-                <div className="flex items-center justify-between pt-2">
-                  {item.pdfUrl ? (
-                    <a
-                      href={item.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                    >
-                      <FileUp className="w-3.5 h-3.5" /> View PDF
-                    </a>
-                  ) : (
-                    <span className="text-xs text-slate-300">No PDF</span>
-                  )}
-                  {confirmDelete === item.id ? (
-                    <div className="flex items-center gap-1">
+
+                {/* EDIT MODE */}
+                {editId === item.id ? (
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-slate-400 mb-1 block">Title</label>
+                      <input
+                        value={editForm.title}
+                        onChange={(e) => setEditForm((p) => ({ ...p, title: e.target.value }))}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 mb-1 block">Date</label>
+                      <input
+                        type="date"
+                        value={editForm.date}
+                        onChange={(e) => setEditForm((p) => ({ ...p, date: e.target.value }))}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 mb-1 block">Description</label>
+                      <textarea
+                        value={editForm.description}
+                        onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
+                        rows={2}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
                       <button
-                        onClick={() => { deleteItem(activeTab, item.id); setConfirmDelete(null); }}
-                        className="text-xs bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
+                        onClick={() => saveEdit(item)}
+                        disabled={editSaving}
+                        className="flex items-center gap-1 text-xs bg-blue-900 text-white px-3 py-1.5 rounded-lg hover:bg-blue-800 disabled:opacity-60"
                       >
-                        Confirm
+                        {editSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                        Save
                       </button>
                       <button
-                        onClick={() => setConfirmDelete(null)}
-                        className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md hover:bg-slate-200"
+                        onClick={cancelEdit}
+                        className="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-200"
                       >
                         Cancel
                       </button>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => setConfirmDelete(item.id)}
-                      className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  /* VIEW MODE */
+                  <>
+                    <p className="text-xs text-slate-400">{item.date}</p>
+                    <h3 className="font-semibold text-slate-800 text-sm leading-snug">{item.title}</h3>
+                    <p className="text-xs text-slate-500 line-clamp-2">{item.description}</p>
+                    <div className="flex items-center justify-between pt-2">
+                      {item.pdfUrl ? (
+                        <a
+                          href={item.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                        >
+                          <FileUp className="w-3.5 h-3.5" /> View PDF
+                        </a>
+                      ) : (
+                        <span className="text-xs text-slate-300">No PDF</span>
+                      )}
+                      <div className="flex items-center gap-1">
+                        {/* EDIT BUTTON */}
+                        <button
+                          onClick={() => startEdit(item)}
+                          className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg transition-colors"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* DELETE BUTTON */}
+                        {confirmDelete === item.id ? (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => { deleteItem(activeTab, item.id); setConfirmDelete(null); }}
+                              className="text-xs bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onClick={() => setConfirmDelete(null)}
+                              className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md hover:bg-slate-200"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDelete(item.id)}
+                            className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))}

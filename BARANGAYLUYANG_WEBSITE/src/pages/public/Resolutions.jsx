@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FileText, Calendar, Download } from "lucide-react";
+import { FileText, Calendar, Download, Search, X } from "lucide-react";
 import { useLegislation } from "../../context/useLegislation";
 import LegislationModal from "../../components/common/LegislationModal";
 
@@ -19,8 +19,23 @@ const cardVariants = {
 
 export default function Resolutions() {
   const { resolutions } = useLegislation();
-  const items = [...resolutions].reverse();
   const [selected, setSelected] = useState(null);
+  const [search, setSearch] = useState("");
+  const [sortOrder, setSortOrder] = useState("az");
+
+  const filtered = [...resolutions]
+    .filter((item) =>
+      item.title?.toLowerCase().includes(search.toLowerCase()) ||
+      item.description?.toLowerCase().includes(search.toLowerCase()) ||
+      item.date?.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOrder === "az") return a.title?.localeCompare(b.title);
+      if (sortOrder === "za") return b.title?.localeCompare(a.title);
+      if (sortOrder === "newest") return new Date(b.date) - new Date(a.date);
+      if (sortOrder === "oldest") return new Date(a.date) - new Date(b.date);
+      return 0;
+    });
 
   return (
     <div className="bg-white pt-24">
@@ -42,19 +57,55 @@ export default function Resolutions() {
         </motion.div>
       </section>
 
+      {/* SEARCH & SORT */}
+      <section className="max-w-7xl mx-auto px-6 pt-10 pb-0">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search resolutions..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
+              </button>
+            )}
+          </div>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="px-4 py-3 rounded-xl border border-slate-200 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700"
+          >
+            <option value="az">Title A – Z</option>
+            <option value="za">Title Z – A</option>
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
+        </div>
+        {search && (
+          <p className="text-xs text-slate-400 mt-2 ml-1">
+            {filtered.length} result{filtered.length !== 1 ? "s" : ""} for "{search}"
+          </p>
+        )}
+      </section>
+
       {/* CONTENT */}
-      <section className="max-w-7xl mx-auto px-6 py-24">
-        {items.length === 0 ? (
+      <section className="max-w-7xl mx-auto px-6 py-10">
+        {filtered.length === 0 ? (
           <div className="text-center py-20 text-slate-400">
             <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No resolutions posted yet.</p>
+            <p className="text-sm">{search ? `No results for "${search}".` : "No resolutions posted yet."}</p>
           </div>
         ) : (
           <motion.div
             className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
             variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
           >
-            {items.map((item) => (
+            {filtered.map((item) => (
               <motion.div
                 key={item.id}
                 variants={cardVariants}
