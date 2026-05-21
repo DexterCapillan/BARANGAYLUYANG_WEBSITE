@@ -9,6 +9,7 @@ import official7 from "../../assets/06_L.jpg";
 import official8 from "../../assets/05_L.jpg";
 import official9 from "../../assets/04_L.jpg";
 import official10 from "../../assets/02_L.jpg";
+import official11 from "../../assets/03_L.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -27,6 +28,7 @@ export default function Officials() {
     { name: "Hon. WILLIAM M. TOMAS", role: "Barangay Kagawad", image: official8 },
     { name: "Hon. JUSTIN PAUL D. TOMAS", role: "SK Chairperson", image: official9 },
     { name: "MERLE F. MARCOS", role: "Barangay Secretary", image: official10 },
+     { name: "JENIFER A. VALEROS", role: "Barangay Treasurer", image: official11 },
   ];
 
   const [captain, ...rest] = officials;
