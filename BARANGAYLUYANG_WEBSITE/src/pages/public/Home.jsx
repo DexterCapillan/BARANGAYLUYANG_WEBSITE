@@ -26,6 +26,7 @@ import official1 from "../../assets/01_L2.jpg";
 import official2 from "../../assets/11_L.jpg";
 import official3 from "../../assets/10_L.jpg";
 import official4 from "../../assets/09_L.jpg";
+import AwardsTicker from "../../components/common/AwardsTicker";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1598714805247-5dd7fe699792?w=1600&q=80";
 
@@ -245,7 +246,7 @@ export default function Home() {
           </div>
         </motion.div>
       </section>
-
+<AwardsTicker />
       {/* SERVICES SECTION */}
       <section className="max-w-7xl mx-auto py-24 px-6">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">

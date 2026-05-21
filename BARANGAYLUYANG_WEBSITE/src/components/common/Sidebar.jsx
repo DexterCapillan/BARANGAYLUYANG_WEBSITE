@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Users, Megaphone, HeartPulse, Settings, ScrollText, Image, Receipt } from "lucide-react";
+import { Trophy } from "lucide-react";
 
 export default function Sidebar() {
   const location = useLocation();
@@ -13,6 +14,7 @@ export default function Sidebar() {
     { name: "Legislation", path: "/admin/legislation", icon: ScrollText },
     { name: "Taxes & Fees", path: "/admin/taxes-and-fees", icon: Receipt },
     { name: "Settings", path: "/admin/settings", icon: Settings },
+    { name: "Awards", path: "/admin/awards", icon: Trophy },
   ];
 
   return (

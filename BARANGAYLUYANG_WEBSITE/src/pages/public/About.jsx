@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X, CheckCircle, Leaf, Shield, Clock, Wifi,
   MapPin, Users, Zap, Droplets, Car, Heart,
-  FileText, BarChart2, DollarSign, BookOpen
+  FileText, BarChart2, DollarSign, BookOpen, Trophy
 } from "lucide-react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAwards } from "../../context/useAwards";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -54,6 +55,8 @@ const timeline = [
 
 export default function About() {
   const [selected, setSelected] = useState(null);
+  const [selectedAward, setSelectedAward] = useState(null);
+  const { awards } = useAwards();
 
   return (
     <div className="bg-white pt-24">
@@ -81,8 +84,6 @@ export default function About() {
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-6">
-
-            {/* POLITICAL INFO */}
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="bg-blue-100 p-2 rounded-lg"><FileText className="w-5 h-5 text-blue-700" /></div>
@@ -103,7 +104,6 @@ export default function About() {
               </div>
             </motion.div>
 
-            {/* PHYSICAL INFO */}
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="bg-green-100 p-2 rounded-lg"><MapPin className="w-5 h-5 text-green-700" /></div>
@@ -124,7 +124,6 @@ export default function About() {
               </div>
             </motion.div>
 
-            {/* DEMOGRAPHIC INFO */}
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="bg-purple-100 p-2 rounded-lg"><Users className="w-5 h-5 text-purple-700" /></div>
@@ -148,7 +147,6 @@ export default function About() {
               </div>
             </motion.div>
 
-            {/* FISCAL INFO */}
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="bg-yellow-100 p-2 rounded-lg"><DollarSign className="w-5 h-5 text-yellow-700" /></div>
@@ -170,7 +168,6 @@ export default function About() {
               </div>
             </motion.div>
 
-            {/* ECONOMIC ACTIVITY */}
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="bg-emerald-100 p-2 rounded-lg"><BarChart2 className="w-5 h-5 text-emerald-700" /></div>
@@ -195,7 +192,6 @@ export default function About() {
               </div>
             </motion.div>
 
-            {/* BASIC UTILITIES */}
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-7">
               <div className="flex items-center gap-3 mb-5">
                 <div className="bg-sky-100 p-2 rounded-lg"><Zap className="w-5 h-5 text-sky-700" /></div>
@@ -232,10 +228,8 @@ export default function About() {
                 </div>
               </div>
             </motion.div>
-
           </div>
 
-          {/* RELIGIOUS AFFILIATIONS */}
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mt-6 bg-white rounded-2xl border border-slate-100 shadow-sm p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="bg-rose-100 p-2 rounded-lg"><BookOpen className="w-5 h-5 text-rose-700" /></div>
@@ -256,7 +250,6 @@ export default function About() {
             </div>
           </motion.div>
 
-          {/* HEALTH DATA */}
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="mt-6 bg-white rounded-2xl border border-slate-100 shadow-sm p-7">
             <div className="flex items-center gap-3 mb-5">
               <div className="bg-red-100 p-2 rounded-lg"><Heart className="w-5 h-5 text-red-600" /></div>
@@ -294,7 +287,6 @@ export default function About() {
               </table>
             </div>
           </motion.div>
-
         </div>
       </section>
 
@@ -308,7 +300,6 @@ export default function About() {
               Barangay Luyang is known by its neighboring barangays and throughout the Province of Nueva Vizcaya as a community built on resilience, unity, and rich cultural heritage.
             </p>
           </motion.div>
-
           <div className="relative">
             <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-white/20 md:-translate-x-px" />
             <div className="space-y-10">
@@ -395,22 +386,70 @@ export default function About() {
         </div>
       </section>
 
-    {/* DIGITAL SERVICES */}
-<section className="max-w-6xl mx-auto px-6 py-24">
-  <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center">
-    <span className="text-sm font-semibold text-blue-600 uppercase tracking-widest">What We Offer</span>
-    <h2 className="text-3xl md:text-4xl font-bold text-blue-900 mt-2 mb-4">Digital Barangay Services</h2>
-    <p className="text-slate-500 max-w-xl mx-auto mb-8">
-      Barangay Luyang offers a range of digital services for every resident — from health updates and legislation to announcements and the Citizens Charter.
-    </p>
-    <Link
-      to="/services"
-      className="inline-flex items-center gap-2 bg-blue-900 text-white font-bold px-8 py-3.5 rounded-xl hover:bg-blue-800 hover:scale-105 transition duration-300 shadow-lg"
-    >
-      View All Services <ArrowRight className="w-5 h-5" />
-    </Link>
-  </motion.div>
-</section>
+      {/* AWARDS SECTION */}
+      <section className="max-w-6xl mx-auto px-6 py-24">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-14">
+          <span className="text-sm font-semibold text-yellow-500 uppercase tracking-widest">Recognition</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-blue-900 mt-2">Awards & Achievements</h2>
+          <p className="text-slate-500 mt-3 max-w-xl mx-auto">
+            Barangay Luyang's commitment to excellence has been recognized through the following awards and citations.
+          </p>
+        </motion.div>
+
+        {awards.length === 0 ? (
+          <div className="text-center py-16 text-slate-400">
+            <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">No awards posted yet.</p>
+          </div>
+        ) : (
+          <motion.div
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}
+          >
+            {[...awards].reverse().map((award) => (
+              <motion.div
+                key={award.id}
+                variants={cardVariants}
+                onClick={() => setSelectedAward(award)}
+                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+              >
+                {award.imageUrl ? (
+                  <div className="h-48 overflow-hidden">
+                    <img src={award.imageUrl} alt={award.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  </div>
+                ) : (
+                  <div className="h-48 bg-gradient-to-br from-yellow-50 to-amber-100 flex items-center justify-center">
+                    <Trophy className="w-12 h-12 text-yellow-400" />
+                  </div>
+                )}
+                <div className="p-5 space-y-2">
+                  <span className="text-xs font-semibold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">{award.year}</span>
+                  <h3 className="font-extrabold text-slate-800 leading-snug">{award.name}</h3>
+                  <p className="text-slate-500 text-sm leading-relaxed line-clamp-2">{award.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </section>
+
+      {/* DIGITAL SERVICES */}
+      <section className="max-w-6xl mx-auto px-6 py-24">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center">
+          <span className="text-sm font-semibold text-blue-600 uppercase tracking-widest">What We Offer</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-blue-900 mt-2 mb-4">Digital Barangay Services</h2>
+          <p className="text-slate-500 max-w-xl mx-auto mb-8">
+            Barangay Luyang offers a range of digital services for every resident — from health updates and legislation to announcements and the Citizens Charter.
+          </p>
+          <Link
+            to="/services"
+            className="inline-flex items-center gap-2 bg-blue-900 text-white font-bold px-8 py-3.5 rounded-xl hover:bg-blue-800 hover:scale-105 transition duration-300 shadow-lg"
+          >
+            View All Services <ArrowRight className="w-5 h-5" />
+          </Link>
+        </motion.div>
+      </section>
+
       {/* TRANSPARENCY BANNER */}
       <section className="relative bg-gradient-to-r from-blue-950 via-blue-900 to-blue-800 py-20 px-6 text-white overflow-hidden">
         <motion.div animate={{ rotate: [0, 360] }} transition={{ repeat: Infinity, duration: 30, ease: "linear" }} className="absolute -right-20 -bottom-20 w-72 h-72 border-4 border-yellow-400/10 rounded-full" />
@@ -420,6 +459,41 @@ export default function About() {
           <p className="text-blue-200 leading-relaxed text-lg">Our digital platform ensures organized records, accessible financial reports, and streamlined services — promoting open governance and public trust.</p>
         </motion.div>
       </section>
+
+      {/* AWARD MODAL */}
+      <AnimatePresence>
+        {selectedAward && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setSelectedAward(null)}
+          >
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            <motion.div
+              className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+              initial={{ opacity: 0, y: 40, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button onClick={() => setSelectedAward(null)} className="absolute top-4 right-4 z-10 bg-white rounded-full p-1.5 shadow-lg hover:bg-slate-100 transition-colors">
+                <X className="w-5 h-5 text-slate-600" />
+              </button>
+              {selectedAward.imageUrl && (
+                <div className="h-56 overflow-hidden">
+                  <img src={selectedAward.imageUrl} alt={selectedAward.name} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="p-6 space-y-3">
+                <span className="text-xs font-semibold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">{selectedAward.year}</span>
+                <h2 className="text-2xl font-extrabold text-slate-800">{selectedAward.name}</h2>
+                <p className="text-slate-600 text-sm leading-relaxed">{selectedAward.description}</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* SERVICE MODAL */}
       <AnimatePresence>
