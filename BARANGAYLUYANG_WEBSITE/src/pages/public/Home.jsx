@@ -463,7 +463,7 @@ export default function Home() {
           <div className="hidden md:block w-px h-4 bg-blue-700" />
           <div className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-yellow-400" />
-            <span>+63 XXX XXX XXXX</span>
+            <span>+63 912 345 6789</span>
           </div>
           <div className="hidden md:block w-px h-4 bg-blue-700" />
           <div className="flex items-center gap-2">
