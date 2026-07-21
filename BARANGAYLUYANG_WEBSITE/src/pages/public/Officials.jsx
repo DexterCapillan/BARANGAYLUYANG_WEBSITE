@@ -40,7 +40,7 @@ export default function Officials() {
       <section className="bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800 py-20 px-6 text-white">
         <motion.div initial="hidden" animate="visible" variants={fadeUp} className="max-w-3xl mx-auto text-center">
           <span className="text-xs font-semibold text-yellow-400 uppercase tracking-widest">Your Leaders</span>
-          <h1 className="text-4xl md:text-5xl font-extrabold mt-3 mb-4">Barangay Council 2026</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold mt-3 mb-4">Barangay Council </h1>
           <p className="text-blue-200 text-lg">Meet the dedicated officials serving Barangay Luyang.</p>
         </motion.div>
       </section>
